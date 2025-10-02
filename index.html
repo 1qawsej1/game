@@ -13,50 +13,51 @@
 
     .door {
       position: absolute;
-      top: 195px;   /* 门的位置 Y */
-      left: 25px;   /* 门的位置 X */
+      top: 195px;
       width: 62px;
       height: 345px;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0); /* 透明，点击区域 */
+      background: rgba(255, 255, 255, 0); /* 永远透明 */
       display: flex;
       justify-content: center;
-      align-items: flex-end; /* 让小bar在底部 */
-    }
-
-    .door:hover {
-      background: rgba(0, 255, 255, 0); /* hover门区域时高亮 */
+      align-items: flex-end;
     }
 
     /* 小bar */
     .room-bar {
       width: 100%;
-      background: rgba(0, 0, 0, 0.6); /* 半透明黑底 */
+      background: rgba(0, 0, 0, 0.6);
       color: white;
       text-align: center;
       font-size: 14px;
       padding: 5px 0;
       border-radius: 0 0 5px 5px;
-      opacity: 0;               /* 默认不可见 */
-      transform: translateY(100%);  /* 下移隐藏 */
-      transition: all 0.3s ease;    /* 动画 */
-      pointer-events: none;         /* 不挡鼠标事件 */
+      opacity: 0;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+      pointer-events: none;
     }
 
     .door:hover .room-bar {
       opacity: 1;
-      transform: translateY(0); /* 滑上来显示 */
+      transform: translateY(0);
     }
   </style>
 </head>
 <body>
-  <div class="door" onclick="enterRoom()">
+  <!-- 左边门 -->
+  <div class="door" style="left: 25px;" onclick="enterRoom('room2.html')">
     <div class="room-bar">Simulation Lab</div>
   </div>
 
+  <!-- 右边门 -->
+  <div class="door" style="left: 1110px;" onclick="enterRoom('archive.html')">
+    <div class="room-bar">Archive</div>
+  </div>
+
   <script>
-    function enterRoom() {
-      window.location.href = "room2.html"; // 跳到第二个房间
+    function enterRoom(target) {
+      window.location.href = target; // 根据参数跳到不同房间
     }
   </script>
 </body>
