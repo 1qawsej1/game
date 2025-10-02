@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Room 1</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: url('room1.png') no-repeat center center/cover;
+      position: relative;
+    }
+
+    .door {
+      position: absolute;
+      top: 200px;   /* 门的位置 Y */
+      left: 500px;  /* 门的位置 X */
+      width: 100px;
+      height: 200px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.1); /* 半透明调试用，之后可改透明 */
+    }
+
+    .door:hover {
+      background: rgba(0, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="door" onclick="enterRoom()"></div>
+
+  <script>
+    function enterRoom() {
+      window.location.href = "room2.html"; // 跳到第二个房间
+    }
+  </script>
+</body>
+</html>
