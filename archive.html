@@ -12,16 +12,6 @@
       overflow: hidden;
     }
 
-    /* 角色 */
-    #character {
-      position: absolute;
-      top: 400px;
-      left: 600px;
-      width: 50px;
-      height: 50px;
-      background: blue; /* 这边换个颜色区分，避免和 room1 混淆 */
-    }
-
     .door {
       position: absolute;
       top: 195px;
@@ -51,12 +41,26 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    #character {
+      position: absolute;
+      top: 400px;
+      left: 600px;
+      width: 50px;
+      height: 50px;
+      background: red; /* 临时小人 */
+    }
   </style>
 </head>
 <body>
-  <!-- 门回去 Room1 -->
-  <div class="door" style="left: 25px;" data-target="index.html">
-    <div class="room-bar">Back to Lab</div>
+  <!-- 左边门 -->
+  <div class="door" style="left: 25px;" data-target="room2.html">
+    <div class="room-bar">Main Lab</div>
+  </div>
+
+  <!-- 右边门 -->
+  <div class="door" style="left: 1195px;" data-target="archive.html">
+    <div class="room-bar">Archive</div>
   </div>
 
   <!-- 角色 -->
@@ -68,7 +72,10 @@
 
     let x = 600, y = 400;
     const speed = 5;
+    const roomWidth = window.innerWidth;
+    const roomHeight = window.innerHeight;
 
+    // 检查角色是否和门重叠
     function checkCollision() {
       const charBox = {
         left: x,
@@ -78,7 +85,6 @@
       };
 
       let collidedDoor = null;
-
       doors.forEach((door) => {
         const doorRect = {
           left: door.offsetLeft,
@@ -97,7 +103,6 @@
           collidedDoor = door;
         }
       });
-
       return collidedDoor;
     }
 
@@ -110,14 +115,15 @@
       if (e.key === "ArrowRight") newX += speed;
 
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        const oldX = x, oldY = y;
-        x = newX; y = newY;
+        // 边界限制（房间墙壁）
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
+        if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
 
-        const collided = checkCollision();
-        if (collided) {
-          x = oldX; y = oldY;
-        }
-
+        // 更新位置
+        x = newX;
+        y = newY;
         character.style.left = x + "px";
         character.style.top = y + "px";
       }
