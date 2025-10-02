@@ -17,7 +17,7 @@
       top: 195px;
       width: 62px;
       height: 345px;
-      background: rgba(255, 255, 255, 0.1); /* 永远透明 */
+      background: rgba(255, 255, 255, 0); /* 永远透明 */
       display: flex;
       justify-content: center;
       align-items: flex-end;
@@ -50,7 +50,7 @@
       left: 600px;
       width: 50px;
       height: 50px;
-      background: red; /* 先用红方块表示，之后可换sprite */
+      background: red; /* 临时方块，之后可换小人sprite */
     }
   </style>
 </head>
@@ -75,23 +75,16 @@
     let x = 600, y = 400;
     const speed = 5;
 
-    document.addEventListener("keydown", (e) => {
-      let newX = x;
-      let newY = y;
-
-      if (e.key === "ArrowUp") newY -= speed;
-      if (e.key === "ArrowDown") newY += speed;
-      if (e.key === "ArrowLeft") newX -= speed;
-      if (e.key === "ArrowRight") newX += speed;
-
+    // 检查角色是否与某扇门接触
+    function checkCollision() {
       const charBox = {
-        left: newX,
-        right: newX + character.offsetWidth,
-        top: newY,
-        bottom: newY + character.offsetHeight
+        left: x,
+        right: x + character.offsetWidth,
+        top: y,
+        bottom: y + character.offsetHeight
       };
 
-      let blocked = false;
+      let collidedDoor = null;
 
       doors.forEach((door) => {
         const doorRect = {
@@ -108,20 +101,42 @@
           charBox.top < doorRect.bottom;
 
         if (overlap) {
-          blocked = true;
-
-          // 如果按下 Enter/Space，就进入房间
-          if (e.key === "Enter" || e.key === " ") {
-            window.location.href = door.dataset.target;
-          }
+          collidedDoor = door;
         }
       });
 
-      if (!blocked) {
-        x = newX;
-        y = newY;
+      return collidedDoor;
+    }
+
+    // 键盘事件
+    document.addEventListener("keydown", (e) => {
+      let newX = x, newY = y;
+
+      if (e.key === "ArrowUp") newY -= speed;
+      if (e.key === "ArrowDown") newY += speed;
+      if (e.key === "ArrowLeft") newX -= speed;
+      if (e.key === "ArrowRight") newX += speed;
+
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        // 临时更新坐标，检查碰撞
+        const oldX = x, oldY = y;
+        x = newX; y = newY;
+
+        const collided = checkCollision();
+        if (collided) {
+          // 撞到门 → 退回原位置
+          x = oldX; y = oldY;
+        }
+
         character.style.left = x + "px";
         character.style.top = y + "px";
+      }
+
+      if (e.key === "Enter" || e.key === " ") {
+        const collided = checkCollision();
+        if (collided) {
+          window.location.href = collided.dataset.target;
+        }
       }
     });
   </script>
