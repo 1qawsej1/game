@@ -14,20 +14,45 @@
     .door {
       position: absolute;
       top: 195px;   /* 门的位置 Y */
-      left: 25px;  /* 门的位置 X */
+      left: 25px;   /* 门的位置 X */
       width: 62px;
       height: 345px;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0); /* 半透明调试用，之后可改透明 */
+      background: rgba(255, 255, 255, 0); /* 透明，点击区域 */
+      display: flex;
+      justify-content: center;
+      align-items: flex-end; /* 让小bar在底部 */
     }
 
     .door:hover {
-      background: rgba(0, 255, 255, 0.3);
+      background: rgba(0, 255, 255, 0.2); /* hover门区域时高亮 */
+    }
+
+    /* 小bar */
+    .room-bar {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6); /* 半透明黑底 */
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      padding: 5px 0;
+      border-radius: 0 0 5px 5px;
+      opacity: 0;               /* 默认不可见 */
+      transform: translateY(100%);  /* 下移隐藏 */
+      transition: all 0.3s ease;    /* 动画 */
+      pointer-events: none;         /* 不挡鼠标事件 */
+    }
+
+    .door:hover .room-bar {
+      opacity: 1;
+      transform: translateY(0); /* 滑上来显示 */
     }
   </style>
 </head>
 <body>
-  <div class="door" onclick="enterRoom()"></div>
+  <div class="door" onclick="enterRoom()">
+    <div class="room-bar">房间 2</div>
+  </div>
 
   <script>
     function enterRoom() {
