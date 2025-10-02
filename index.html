@@ -12,30 +12,19 @@
       overflow: hidden;
     }
 
-    /* 角色 */
-    #character {
-      position: absolute;
-      top: 400px;
-      left: 600px;
-      width: 40px;
-      height: 40px;
-      background: red; /* 角色：红色方块代替 */
-    }
-
-    /* 门 */
     .door {
       position: absolute;
       top: 195px;
       width: 62px;
       height: 345px;
-      background: rgba(255, 255, 255, 0); /* 完全透明 */
+      background: rgba(255, 255, 255, 0.1); /* 永远透明 */
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
     }
 
-    /* 门提示小bar */
+    /* 小bar */
     .room-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
       width: 100%;
       background: rgba(0, 0, 0, 0.6);
       color: white;
@@ -53,16 +42,26 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* 角色 */
+    #character {
+      position: absolute;
+      top: 400px;
+      left: 600px;
+      width: 50px;
+      height: 50px;
+      background: red; /* 先用红方块表示，之后可换sprite */
+    }
   </style>
 </head>
 <body>
   <!-- 左边门 -->
-  <div class="door" id="door-left" style="left: 25px;">
+  <div class="door" style="left: 25px;" data-target="room2.html">
     <div class="room-bar">Simulation Lab</div>
   </div>
 
   <!-- 右边门 -->
-  <div class="door" id="door-right" style="left: 1195px;">
+  <div class="door" style="left: 1195px;" data-target="archive.html">
     <div class="room-bar">Archive</div>
   </div>
 
@@ -71,51 +70,60 @@
 
   <script>
     const character = document.getElementById("character");
-    const doorLeft = document.getElementById("door-left");
-    const doorRight = document.getElementById("door-right");
+    const doors = document.querySelectorAll(".door");
 
-    let posX = 600; // 初始位置 X
-    let posY = 400; // 初始位置 Y
-    const step = 10; // 每次移动的像素
+    let x = 600, y = 400;
+    const speed = 5;
 
-    document.addEventListener("keydown", function(event) {
-      switch(event.key) {
-        case "ArrowUp":    posY -= step; break;
-        case "ArrowDown":  posY += step; break;
-        case "ArrowLeft":  posX -= step; break;
-        case "ArrowRight": posX += step; break;
+    document.addEventListener("keydown", (e) => {
+      let newX = x;
+      let newY = y;
+
+      if (e.key === "ArrowUp") newY -= speed;
+      if (e.key === "ArrowDown") newY += speed;
+      if (e.key === "ArrowLeft") newX -= speed;
+      if (e.key === "ArrowRight") newX += speed;
+
+      const charBox = {
+        left: newX,
+        right: newX + character.offsetWidth,
+        top: newY,
+        bottom: newY + character.offsetHeight
+      };
+
+      let blocked = false;
+
+      doors.forEach((door) => {
+        const doorRect = {
+          left: door.offsetLeft,
+          right: door.offsetLeft + door.offsetWidth,
+          top: door.offsetTop,
+          bottom: door.offsetTop + door.offsetHeight
+        };
+
+        const overlap =
+          charBox.right > doorRect.left &&
+          charBox.left < doorRect.right &&
+          charBox.bottom > doorRect.top &&
+          charBox.top < doorRect.bottom;
+
+        if (overlap) {
+          blocked = true;
+
+          // 如果按下 Enter/Space，就进入房间
+          if (e.key === "Enter" || e.key === " ") {
+            window.location.href = door.dataset.target;
+          }
+        }
+      });
+
+      if (!blocked) {
+        x = newX;
+        y = newY;
+        character.style.left = x + "px";
+        character.style.top = y + "px";
       }
-      character.style.top = posY + "px";
-      character.style.left = posX + "px";
-
-      checkDoorCollision();
     });
-
-    function checkDoorCollision() {
-      const charRect = character.getBoundingClientRect();
-      const leftDoorRect = doorLeft.getBoundingClientRect();
-      const rightDoorRect = doorRight.getBoundingClientRect();
-
-      // 左门
-      if (
-        charRect.left < leftDoorRect.right &&
-        charRect.right > leftDoorRect.left &&
-        charRect.top < leftDoorRect.bottom &&
-        charRect.bottom > leftDoorRect.top
-      ) {
-        window.location.href = "room2.html";
-      }
-
-      // 右门
-      if (
-        charRect.left < rightDoorRect.right &&
-        charRect.right > rightDoorRect.left &&
-        charRect.top < rightDoorRect.bottom &&
-        charRect.bottom > rightDoorRect.top
-      ) {
-        window.location.href = "archive.html";
-      }
-    }
   </script>
 </body>
 </html>
