@@ -1,1 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Room 1</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: url('researchlab.png') no-repeat center center/cover;
+      position: relative;
+      overflow: hidden;
+    }
 
+    .door {
+      position: absolute;
+      top: 195px;
+      width: 62px;
+      height: 345px;
+      background: rgba(255, 255, 255, 0); /* 永远透明 */
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .room-bar {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      padding: 5px 0;
+      border-radius: 0 0 5px 5px;
+      opacity: 0;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .door:hover .room-bar {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #character {
+      position: absolute;
+      top: 400px;
+      left: 600px;
+      width: 50px;
+      height: 50px;
+      background: red; /* 临时小人 */
+    }
+  </style>
+</head>
+<body>
+  <!-- 左边门 -->
+  <div class="door" style="left: 25px;" data-target="simulationlab.html">
+    <div class="room-bar">Simulation Lab</div>
+  </div>
+
+  <!-- 右边门 -->
+  <div class="door" style="left: 1195px;" data-target="index.html">
+    <div class="room-bar">Main Lab</div>
+  </div>
+
+  <!-- 角色 -->
+  <div id="character"></div>
+
+  <script>
+    const character = document.getElementById("character");
+    const doors = document.querySelectorAll(".door");
+
+    let x = 600, y = 400;
+    const speed = 5;
+    const roomWidth = window.innerWidth;
+    const roomHeight = window.innerHeight;
+
+    // 检查角色是否和门重叠
+    function checkCollision() {
+      const charBox = {
+        left: x,
+        right: x + character.offsetWidth,
+        top: y,
+        bottom: y + character.offsetHeight
+      };
+
+      let collidedDoor = null;
+      doors.forEach((door) => {
+        const doorRect = {
+          left: door.offsetLeft,
+          right: door.offsetLeft + door.offsetWidth,
+          top: door.offsetTop,
+          bottom: door.offsetTop + door.offsetHeight
+        };
+
+        const overlap =
+          charBox.right > doorRect.left &&
+          charBox.left < doorRect.right &&
+          charBox.bottom > doorRect.top &&
+          charBox.top < doorRect.bottom;
+
+        if (overlap) {
+          collidedDoor = door;
+        }
+      });
+      return collidedDoor;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      let newX = x, newY = y;
+
+      if (e.key === "ArrowUp") newY -= speed;
+      if (e.key === "ArrowDown") newY += speed;
+      if (e.key === "ArrowLeft") newX -= speed;
+      if (e.key === "ArrowRight") newX += speed;
+
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        // 边界限制（房间墙壁）
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
+        if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
+
+        // 更新位置
+        x = newX;
+        y = newY;
+        character.style.left = x + "px";
+        character.style.top = y + "px";
+      }
+
+      if (e.key === "Enter" || e.key === " ") {
+        const collided = checkCollision();
+        if (collided) {
+          window.location.href = collided.dataset.target;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
