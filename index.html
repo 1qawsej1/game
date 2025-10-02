@@ -23,7 +23,6 @@
       align-items: flex-end;
     }
 
-    /* 小bar */
     .room-bar {
       width: 100%;
       background: rgba(0, 0, 0, 0.6);
@@ -43,14 +42,13 @@
       transform: translateY(0);
     }
 
-    /* 角色 */
     #character {
       position: absolute;
       top: 400px;
       left: 600px;
       width: 50px;
       height: 50px;
-      background: red; /* 临时方块，之后可换小人sprite */
+      background: red; /* 临时小人 */
     }
   </style>
 </head>
@@ -74,8 +72,10 @@
 
     let x = 600, y = 400;
     const speed = 5;
+    const roomWidth = window.innerWidth;
+    const roomHeight = window.innerHeight;
 
-    // 检查角色是否与某扇门接触
+    // 检查角色是否和门重叠
     function checkCollision() {
       const charBox = {
         left: x,
@@ -85,7 +85,6 @@
       };
 
       let collidedDoor = null;
-
       doors.forEach((door) => {
         const doorRect = {
           left: door.offsetLeft,
@@ -104,11 +103,9 @@
           collidedDoor = door;
         }
       });
-
       return collidedDoor;
     }
 
-    // 键盘事件
     document.addEventListener("keydown", (e) => {
       let newX = x, newY = y;
 
@@ -118,16 +115,15 @@
       if (e.key === "ArrowRight") newX += speed;
 
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        // 临时更新坐标，检查碰撞
-        const oldX = x, oldY = y;
-        x = newX; y = newY;
+        // 边界限制（房间墙壁）
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
+        if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
 
-        const collided = checkCollision();
-        if (collided) {
-          // 撞到门 → 退回原位置
-          x = oldX; y = oldY;
-        }
-
+        // 更新位置
+        x = newX;
+        y = newY;
         character.style.left = x + "px";
         character.style.top = y + "px";
       }
