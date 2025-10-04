@@ -18,7 +18,7 @@
       top: 195px;
       width: 62px;
       height: 345px;
-      background: rgba(255, 255, 255, 0); /* 永远透明 */
+      background: rgba(255, 255, 255, 0);
       display: flex;
       justify-content: center;
       align-items: flex-end;
@@ -46,9 +46,9 @@
 
     #character {
       position: absolute;
-      width: 50px;
-      height: 50px;
-      background: red; /* 临时小人，可换图片 */
+      width: 15vw; /* Room 页面的大小 */
+      aspect-ratio: 2/3;
+      background: url('1234.png') no-repeat center/contain;
       z-index: 5;
       transition: transform 0.3s ease-in-out;
     }
@@ -135,8 +135,6 @@
     function initPosition(){
       x = (window.innerWidth - character.offsetWidth)/2;
       y = window.innerHeight - character.offsetHeight - groundOffset;
-      character.style.left = x + "px";
-      character.style.top = y + "px";
     }
 
     function updateCharacter(){
@@ -215,3 +213,4 @@
   </script>
 </body>
 </html>
+
