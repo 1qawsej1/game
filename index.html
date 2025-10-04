@@ -52,9 +52,45 @@ body {
   background: url('1234.png') no-repeat center/contain;
   pointer-events:none;
   z-index:5;
-  /* 镜像翻转 + 动画 */
-  transition: transform 0.3s ease-in-out; /* 平滑转向 */
+  transition: transform 0.3s ease-in-out;
 }
+
+/* ===== Mission Control 滑出面板 ===== */
+#mission-panel {
+  position: fixed;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  transition: top 0.6s ease;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#mission-panel.active {
+  top: 0;
+}
+
+#mission-panel iframe {
+  width: 90%;
+  height: 90%;
+  border: none;
+  border-radius: 15px;
+}
+
+#close-mission {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+}
+#close-mission:hover { color: #0ff; }
 </style>
 </head>
 <body>
@@ -65,7 +101,7 @@ body {
 </div>
 
 <!-- Mission Control 门 -->
-<div class="door" style="left:35%;" data-target="missioncontrol.html">
+<div class="door" style="left:35%;" data-type="mission">
   <div class="room-bar">Mission Control</div>
 </div>
 
@@ -82,16 +118,22 @@ body {
 <!-- 角色 -->
 <div id="character"></div>
 
+<!-- Mission Control 滑出面板 -->
+<div id="mission-panel">
+  <span id="close-mission">✖</span>
+  <iframe src="missioncontrol.html" allowfullscreen></iframe>
+</div>
+
 <script>
 const character = document.getElementById("character");
 const doors = document.querySelectorAll(".door");
+const missionPanel = document.getElementById("mission-panel");
+const closeMission = document.getElementById("close-mission");
 
 let x=0, y=0;
 const speed=10;
 let facingRight=true;
 let groundOffset=window.innerHeight*0.05;
-
-// 摇摆参数
 let sway=0, swayDir=1;
 
 function initPosition(){
@@ -100,13 +142,11 @@ function initPosition(){
 }
 
 function updateCharacter(){
-  // 摇摆
   sway += swayDir*0.2;
   if(sway>4 || sway<-4) swayDir*=-1;
 
   character.style.left = `${x}px`;
   character.style.top = `${y + sway}px`;
-  // 镜像翻转
   character.style.transform = `scaleX(${facingRight?1:-1})`;
 }
 
@@ -143,16 +183,21 @@ document.addEventListener('keydown', e=>{
   x = Math.max(0, Math.min(maxX, x));
   y = Math.max(0, Math.min(maxY, y));
 
-  checkCollision();
+  const collided = checkCollision();
 
   if(e.key==='Enter'||e.key===' '){
-    const collided = checkCollision();
-    if(collided && collided.dataset.target) window.location.href = collided.dataset.target;
+    if(collided){
+      if(collided.dataset.type==='mission'){
+        missionPanel.classList.add('active'); // 打开 Mission Control 面板
+      } else if(collided.dataset.target){
+        window.location.href = collided.dataset.target;
+      }
+    }
   }
 });
+
+closeMission.onclick = ()=> missionPanel.classList.remove('active');
 </script>
 
 </body>
 </html>
-
-
