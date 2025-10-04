@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>Archive Photo Gallery</title>
+<title>Archive</title>
 <style>
 body {
   margin: 0;
@@ -13,6 +13,7 @@ body {
   font-family: 'Segoe UI', sans-serif;
 }
 
+/* 门样式 */
 .door {
   position: absolute;
   top: 195px;
@@ -23,7 +24,6 @@ body {
   justify-content: center;
   align-items: flex-end;
 }
-
 .room-bar {
   background: rgba(0, 0, 0, 0.6);
   color: white;
@@ -38,12 +38,9 @@ body {
   min-width: 120px;
   width: fit-content;
 }
+.door.active .room-bar { opacity: 1; transform: translateY(0); }
 
-.door.active .room-bar {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+/* 角色 */
 #character {
   position: absolute;
   width: 15vw;
@@ -54,6 +51,7 @@ body {
   visibility: hidden;
 }
 
+/* 右门触发照片弹出面板 */
 .door.photo-door {
   width: 600px;
   height: 500px;
@@ -61,6 +59,7 @@ body {
   right: 20px;
 }
 
+/* 照片面板 */
 #photo-panel {
   position: fixed;
   top: 0;
@@ -77,11 +76,7 @@ body {
   padding: 40px 20px;
   z-index: 100;
 }
-
-#photo-panel.active {
-  right: 0;
-}
-
+#photo-panel.active { right: 0; }
 #photo-panel img {
   max-width: 80%;
   max-height: 80%;
@@ -89,12 +84,11 @@ body {
   box-shadow: 0 0 15px #000;
   opacity: 0;
   transition: opacity 0.4s ease;
+  position: absolute;
 }
+#photo-panel img.active { opacity: 1; position: relative; }
 
-#photo-panel img.active {
-  opacity: 1;
-}
-
+/* 面板控制 */
 #close-panel {
   position: absolute;
   top: 20px;
@@ -103,9 +97,9 @@ body {
   color: white;
   cursor: pointer;
 }
-
 #close-panel:hover { color: #0ff; }
 
+/* 左右箭头 */
 #prev, #next {
   position: absolute;
   top: 50%;
@@ -116,10 +110,8 @@ body {
   user-select: none;
   padding: 10px;
 }
-
 #prev { left: 20px; }
 #next { right: 20px; }
-
 #prev:hover, #next:hover { color: #0ff; }
 
 </style>
@@ -139,7 +131,7 @@ body {
 <!-- 角色 -->
 <div id="character"></div>
 
-<!-- 照片弹出面板 -->
+<!-- 照片面板 -->
 <div id="photo-panel">
   <span id="close-panel">✖</span>
   <span id="prev">&#10094;</span>
@@ -156,42 +148,43 @@ body {
 </div>
 
 <script>
+// 角色和门逻辑
 const character = document.getElementById("character");
 const doors = document.querySelectorAll(".door");
 const photoPanel = document.getElementById("photo-panel");
 const closePanel = document.getElementById("close-panel");
 
 let x, y;
-const speed=10;
-let facingRight=true;
-let sway=0, swayDir=1;
-const groundOffset = window.innerHeight*0.05;
+const speed = 10;
+let facingRight = true;
+let sway = 0, swayDir = 1;
+const groundOffset = window.innerHeight * 0.05;
 
 character.style.visibility = "hidden";
 
-function initPosition(){
-  x = (window.innerWidth - character.offsetWidth)/2;
+function initPosition() {
+  x = (window.innerWidth - character.offsetWidth) / 2;
   y = window.innerHeight - character.offsetHeight - groundOffset;
   character.style.left = x + "px";
   character.style.top = y + "px";
   character.style.visibility = "visible";
 }
 
-function updateCharacter(){
-  sway += swayDir*0.2;
-  if(sway>4 || sway<-4) swayDir*=-1;
+function updateCharacter() {
+  sway += swayDir * 0.2;
+  if (sway > 4 || sway < -4) swayDir *= -1;
   character.style.left = `${x}px`;
   character.style.top = `${y + sway}px`;
-  character.style.transform = `scaleX(${facingRight?1:-1})`;
+  character.style.transform = `scaleX(${facingRight ? 1 : -1})`;
 }
 
-function checkCollision(){
-  const charBox = { left:x, right:x+character.offsetWidth, top:y, bottom:y+character.offsetHeight };
+function checkCollision() {
+  const charBox = { left: x, right: x + character.offsetWidth, top: y, bottom: y + character.offsetHeight };
   let collidedDoor = null;
-  doors.forEach(door=>{
-    const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
-    const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
-    if(overlap){
+  doors.forEach(door => {
+    const r = { left: door.offsetLeft, right: door.offsetLeft + door.offsetWidth, top: door.offsetTop, bottom: door.offsetTop + door.offsetHeight };
+    const overlap = charBox.right > r.left && charBox.left < r.right && charBox.bottom > r.top && charBox.top < r.bottom;
+    if (overlap) {
       door.classList.add("active");
       collidedDoor = door;
     } else door.classList.remove("active");
@@ -199,58 +192,49 @@ function checkCollision(){
   return collidedDoor;
 }
 
-function loop(){
-  updateCharacter();
-  requestAnimationFrame(loop);
-}
+function loop() { updateCharacter(); requestAnimationFrame(loop); }
 loop();
 
 window.addEventListener('load', initPosition);
 window.addEventListener('resize', initPosition);
 
-document.addEventListener('keydown', (e)=>{
-  if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault();}
-  if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault();}
-  if(e.key==='ArrowUp'){ y-=speed; e.preventDefault();}
-  if(e.key==='ArrowDown'){ y+=speed; e.preventDefault();}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') { x -= speed; facingRight = false; e.preventDefault(); }
+  if (e.key === 'ArrowRight') { x += speed; facingRight = true; e.preventDefault(); }
+  if (e.key === 'ArrowUp') { y -= speed; e.preventDefault(); }
+  if (e.key === 'ArrowDown') { y += speed; e.preventDefault(); }
 
   const maxX = window.innerWidth - character.offsetWidth;
-  const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
+  const maxY = window.innerHeight - character.offsetHeight - groundOffset / 2;
   x = Math.max(0, Math.min(maxX, x));
   y = Math.max(0, Math.min(maxY, y));
 
   const collided = checkCollision();
-  if(e.key==='Enter'||e.key===' '){
-    if(collided){
-      if(collided.dataset.type==='photo'){
-        photoPanel.classList.add('active');
-      } else if(collided.dataset.target){
-        window.location.href = collided.dataset.target;
-      }
+  if (e.key === 'Enter' || e.key === ' ') {
+    if (collided) {
+      if (collided.dataset.type === 'photo') photoPanel.classList.add('active');
+      else if (collided.dataset.target) window.location.href = collided.dataset.target;
     }
   }
 });
 
-// 轮播逻辑
+// 照片轮播
 const images = photoPanel.querySelectorAll('img');
 let currentIndex = 0;
-
-function showImage(index){
-  images.forEach((img,i)=> img.classList.toggle('active', i===index));
+function showImage(index) {
+  images.forEach((img, i) => img.classList.toggle('active', i === index));
 }
-
-document.getElementById('prev').onclick = ()=>{
-  currentIndex = (currentIndex-1+images.length)%images.length;
+document.getElementById('prev').onclick = () => {
+  currentIndex = (currentIndex - 1 + images.length) % images.length;
   showImage(currentIndex);
 };
-document.getElementById('next').onclick = ()=>{
-  currentIndex = (currentIndex+1)%images.length;
+document.getElementById('next').onclick = () => {
+  currentIndex = (currentIndex + 1) % images.length;
   showImage(currentIndex);
 };
 
-closePanel.onclick = ()=> photoPanel.classList.remove('active');
+closePanel.onclick = () => photoPanel.classList.remove('active');
 
 </script>
 </body>
 </html>
-
