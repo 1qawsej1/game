@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>Archive with Photos</title>
+<title>Archive Photo Gallery</title>
 <style>
 body {
   margin: 0;
@@ -73,9 +73,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 40px;
+  justify-content: center;
+  padding: 40px 20px;
   z-index: 100;
-  overflow-y: auto;
 }
 
 #photo-panel.active {
@@ -84,9 +84,15 @@ body {
 
 #photo-panel img {
   max-width: 80%;
-  margin: 10px 0;
+  max-height: 80%;
   border-radius: 8px;
-  box-shadow: 0 0 10px #000;
+  box-shadow: 0 0 15px #000;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+#photo-panel img.active {
+  opacity: 1;
 }
 
 #close-panel {
@@ -97,7 +103,25 @@ body {
   color: white;
   cursor: pointer;
 }
+
 #close-panel:hover { color: #0ff; }
+
+#prev, #next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 50px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  padding: 10px;
+}
+
+#prev { left: 20px; }
+#next { right: 20px; }
+
+#prev:hover, #next:hover { color: #0ff; }
+
 </style>
 </head>
 <body>
@@ -107,7 +131,7 @@ body {
   <div class="room-bar">Main Lab</div>
 </div>
 
-<!-- 右门，打开照片面板 -->
+<!-- 右门 -->
 <div class="door photo-door" data-type="photo">
   <div class="room-bar">Open Archive Photos</div>
 </div>
@@ -118,8 +142,9 @@ body {
 <!-- 照片弹出面板 -->
 <div id="photo-panel">
   <span id="close-panel">✖</span>
-  <p style="color:white; font-size:18px;">档案照片如下：</p>
-  <img src="img1.png" alt="Photo 1">
+  <span id="prev">&#10094;</span>
+  <span id="next">&#10095;</span>
+  <img src="img1.png" class="active" alt="Photo 1">
   <img src="img2.png" alt="Photo 2">
   <img src="img3.png" alt="Photo 3">
   <img src="img4.png" alt="Photo 4">
@@ -206,7 +231,25 @@ document.addEventListener('keydown', (e)=>{
   }
 });
 
+// 轮播逻辑
+const images = photoPanel.querySelectorAll('img');
+let currentIndex = 0;
+
+function showImage(index){
+  images.forEach((img,i)=> img.classList.toggle('active', i===index));
+}
+
+document.getElementById('prev').onclick = ()=>{
+  currentIndex = (currentIndex-1+images.length)%images.length;
+  showImage(currentIndex);
+};
+document.getElementById('next').onclick = ()=>{
+  currentIndex = (currentIndex+1)%images.length;
+  showImage(currentIndex);
+};
+
 closePanel.onclick = ()=> photoPanel.classList.remove('active');
+
 </script>
 </body>
 </html>
