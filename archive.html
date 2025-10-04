@@ -24,37 +24,35 @@
       align-items: flex-end;
     }
 
-.room-bar {
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  text-align: center;
-  font-size: 14px;
-  padding: 6px 20px;  /* ✅ 字条稍微宽一点，比较美观 */
-  border-radius: 0 0 8px 8px;
-  opacity: 0;
-  transform: translateY(100%);
-  transition: all 0.3s ease;
-  pointer-events: none;
-  min-width: 120px; /* ✅ 保证不会太短 */
-  width: fit-content; /* 根据文字自动调宽 */
-}
+    .room-bar {
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      padding: 6px 20px;
+      border-radius: 0 0 8px 8px;
+      opacity: 0;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      min-width: 120px;
+      width: fit-content;
+    }
 
-/* 当角色靠近时显示 */
-.door.active .room-bar {
-  opacity: 1;
-  transform: translateY(0);
-}
+    .door.active .room-bar {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     #character {
       position: absolute;
-      top: 400px;
-      left: 600px;
       width: 50px;
       height: 50px;
-      background: red; /* 临时小人 */
+      background: red; /* 临时小人，可换图片 */
+      z-index: 5;
+      transition: transform 0.3s ease-in-out;
     }
 
-    /* ====== Canva 门样式（更大）====== */
     .door.ppt-door {
       width: 600px;
       height: 500px;
@@ -62,14 +60,13 @@
       right: 20px;
     }
 
-    /* ====== 右侧弹出面板 ====== */
     #ppt-panel {
       position: fixed;
       top: 0;
       right: -80%;
       width: 80%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       backdrop-filter: blur(10px);
       transition: right 0.6s ease;
       display: flex;
@@ -97,6 +94,7 @@
       color: white;
       cursor: pointer;
     }
+
     #close-panel:hover {
       color: #0ff;
     }
@@ -110,7 +108,7 @@
 
   <!-- 右边 PPT 门 -->
   <div class="door ppt-door" data-type="ppt">
-    <div class="room-bar"> Open Archive Files </div>
+    <div class="room-bar">Open Archive Files</div>
   </div>
 
   <!-- 角色 -->
@@ -128,36 +126,47 @@
     const pptPanel = document.getElementById("ppt-panel");
     const closePanel = document.getElementById("close-panel");
 
-    let x = 600, y = 400;
-    const speed = 10;
-    const roomWidth = window.innerWidth;
-    const roomHeight = window.innerHeight;
+    let x=0, y=0;
+    const speed=10;
+    let facingRight=true;
+    let sway=0, swayDir=1;
+    const groundOffset = window.innerHeight*0.05;
 
-    // 检查角色是否和门重叠
-    function checkCollision() {
+    function initPosition(){
+      x = (window.innerWidth - character.offsetWidth)/2;
+      y = window.innerHeight - character.offsetHeight - groundOffset;
+      character.style.left = x + "px";
+      character.style.top = y + "px";
+    }
+
+    function updateCharacter(){
+      // 摇摆
+      sway += swayDir*0.2;
+      if(sway>4 || sway<-4) swayDir*=-1;
+
+      character.style.left = `${x}px`;
+      character.style.top = `${y + sway}px`;
+      // 镜像翻转
+      character.style.transform = `scaleX(${facingRight?1:-1})`;
+    }
+
+    function checkCollision(){
       const charBox = {
         left: x,
         right: x + character.offsetWidth,
         top: y,
         bottom: y + character.offsetHeight
       };
-
       let collidedDoor = null;
-      doors.forEach((door) => {
-        const doorRect = {
+      doors.forEach((door)=>{
+        const r = {
           left: door.offsetLeft,
           right: door.offsetLeft + door.offsetWidth,
           top: door.offsetTop,
           bottom: door.offsetTop + door.offsetHeight
         };
-
-        const overlap =
-          charBox.right > doorRect.left &&
-          charBox.left < doorRect.right &&
-          charBox.bottom > doorRect.top &&
-          charBox.top < doorRect.bottom;
-
-        if (overlap) {
+        const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
+        if(overlap){
           door.classList.add("active");
           collidedDoor = door;
         } else {
@@ -167,43 +176,42 @@
       return collidedDoor;
     }
 
-    // 键盘控制角色移动
-    document.addEventListener("keydown", (e) => {
-      let newX = x, newY = y;
+    function loop(){
+      updateCharacter();
+      requestAnimationFrame(loop);
+    }
+    loop();
 
-      if (e.key === "ArrowUp") newY -= speed;
-      if (e.key === "ArrowDown") newY += speed;
-      if (e.key === "ArrowLeft") newX -= speed;
-      if (e.key === "ArrowRight") newX += speed;
+    window.addEventListener('load', initPosition);
+    window.addEventListener('resize', initPosition);
 
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        if (newX < 0) newX = 0;
-        if (newY < 0) newY = 0;
-        if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
-        if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault();}
+      if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault();}
+      if(e.key==='ArrowUp'){ y-=speed; e.preventDefault();}
+      if(e.key==='ArrowDown'){ y+=speed; e.preventDefault();}
 
-        x = newX;
-        y = newY;
-        character.style.left = x + "px";
-        character.style.top = y + "px";
+      // 限制边界
+      const maxX = window.innerWidth - character.offsetWidth;
+      const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
+      x = Math.max(0, Math.min(maxX, x));
+      y = Math.max(0, Math.min(maxY, y));
 
-        checkCollision();
-      }
+      checkCollision();
 
-      if (e.key === "Enter" || e.key === " ") {
+      if(e.key==='Enter'||e.key===' '){
         const collided = checkCollision();
-        if (collided) {
-          if (collided.dataset.type === "ppt") {
-            pptPanel.classList.add("active"); // 打开 Canva 面板
-          } else if (collided.dataset.target) {
+        if(collided){
+          if(collided.dataset.type==='ppt'){
+            pptPanel.classList.add('active');
+          } else if(collided.dataset.target){
             window.location.href = collided.dataset.target;
           }
         }
       }
     });
 
-    // 关闭 Canva 面板
-    closePanel.onclick = () => pptPanel.classList.remove("active");
+    closePanel.onclick = ()=> pptPanel.classList.remove('active');
   </script>
 </body>
 </html>
