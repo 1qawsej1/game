@@ -53,7 +53,7 @@ body {
   background: url('1234.png') no-repeat center/contain;
   pointer-events: none;
   z-index: 5;
-  transition: transform 0.3s ease-in-out;
+  /* transition 会在 JS 中动态添加 */
 }
 
 /* Meteor Simulator 面板 (iframe) */
@@ -91,7 +91,6 @@ body {
   color: #fff;
 }
 #close-simulator:hover { color: #0ff; }
-
 </style>
 </head>
 <body>
@@ -112,7 +111,6 @@ body {
 <!-- Meteor Simulator 面板 -->
 <div id="simulator-panel">
   <span id="close-simulator">✖</span>
-  <!-- iframe 嵌入 HTML 文件 -->
   <iframe src="nasa.html"></iframe>
 </div>
 
@@ -122,56 +120,70 @@ const doors = document.querySelectorAll(".door");
 const simulatorPanel = document.getElementById("simulator-panel");
 const closeSimulator = document.getElementById("close-simulator");
 
-let x=600, y=400;
-const speed=10;
-let facingRight=true;
+let x = 600, y = 400;
+const speed = 10;
+let facingRight = true;
 
-function checkCollision(){
-  let collided=null;
-  const charBox=character.getBoundingClientRect();
-  doors.forEach(d=>{
-    const r=d.getBoundingClientRect();
-    if(charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom){
+// 页面加载完成后初始化角色位置并淡入
+window.addEventListener('load', () => {
+  character.style.left = x + 'px';
+  character.style.top = y + 'px';
+  character.style.opacity = 0;
+  character.style.transition = 'left 0.3s ease, top 0.3s ease, transform 0.3s ease, opacity 0.5s ease';
+  
+  // 稍微延迟显示，让淡入效果可见
+  setTimeout(() => {
+    character.style.opacity = 1;
+  }, 50);
+});
+
+// 检测与门碰撞
+function checkCollision() {
+  let collided = null;
+  const charBox = character.getBoundingClientRect();
+  doors.forEach(d => {
+    const r = d.getBoundingClientRect();
+    if(charBox.right > r.left && charBox.left < r.right && charBox.bottom > r.top && charBox.top < r.bottom) {
       d.classList.add("active");
-      collided=d;
+      collided = d;
     } else d.classList.remove("active");
   });
   return collided;
 }
 
-// 键盘控制
-document.addEventListener('keydown', e=>{
-  if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault(); }
-  if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault(); }
-  if(e.key==='ArrowUp'){ y-=speed; e.preventDefault(); }
-  if(e.key==='ArrowDown'){ y+=speed; e.preventDefault(); }
+// 键盘控制角色移动
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowLeft'){ x -= speed; facingRight = false; e.preventDefault(); }
+  if(e.key === 'ArrowRight'){ x += speed; facingRight = true; e.preventDefault(); }
+  if(e.key === 'ArrowUp'){ y -= speed; e.preventDefault(); }
+  if(e.key === 'ArrowDown'){ y += speed; e.preventDefault(); }
 
-  // 边界
-  const maxX=window.innerWidth-character.offsetWidth;
-  const maxY=window.innerHeight-character.offsetHeight;
-  x=Math.max(0, Math.min(maxX,x));
-  y=Math.max(0, Math.min(maxY,y));
+  // 限制边界
+  const maxX = window.innerWidth - character.offsetWidth;
+  const maxY = window.innerHeight - character.offsetHeight;
+  x = Math.max(0, Math.min(maxX, x));
+  y = Math.max(0, Math.min(maxY, y));
 
-  character.style.left=x+'px';
-  character.style.top=y+'px';
-  character.style.transform=`scaleX(${facingRight?1:-1})`;
+  character.style.left = x + 'px';
+  character.style.top = y + 'px';
+  character.style.transform = `scaleX(${facingRight ? 1 : -1})`;
 
   const collided = checkCollision();
 
-  // 按 Enter 打开模拟器
-  if((e.key==='Enter'||e.key===' ') && collided){
-    if(collided.dataset.type==='simulator'){
+  // 按 Enter 或 Space 与门交互
+  if((e.key === 'Enter' || e.key === ' ') && collided){
+    if(collided.dataset.type === 'simulator'){
       simulatorPanel.classList.add('active');
     } else if(collided.dataset.target){
-      window.location.href=collided.dataset.target;
+      window.location.href = collided.dataset.target;
     }
   }
 });
 
-// 关闭面板
-closeSimulator.onclick = ()=>simulatorPanel.classList.remove('active');
-
+// 关闭模拟器面板
+closeSimulator.onclick = () => simulatorPanel.classList.remove('active');
 </script>
 
 </body>
 </html>
+
