@@ -57,6 +57,16 @@
       pointer-events: none;
       transition: transform 0.1s linear;
       z-index: 5;
+      animation: sway 2s ease-in-out infinite; /* ✅ 添加摇摆动画 */
+    }
+
+    /* ✅ 摇摆动画关键帧 */
+    @keyframes sway {
+      0% { transform: translateY(0) scaleX(1); }
+      25% { transform: translateY(-4px) scaleX(1.02); }
+      50% { transform: translateY(0) scaleX(1); }
+      75% { transform: translateY(4px) scaleX(0.98); }
+      100% { transform: translateY(0) scaleX(1); }
     }
   </style>
 </head>
@@ -106,6 +116,8 @@
       // ✅ 使用反引号包住模板字符串！
       character.style.left = `${x}px`;
       character.style.top = `${y}px`;
+
+      // ✅ 保持摇摆动画 + 镜像翻转
       character.style.transform = `scaleX(${facingRight ? 1 : -1})`;
     }
 
@@ -176,3 +188,4 @@
   </script>
 </body>
 </html>
+
