@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <title>Archive</title>
@@ -10,6 +10,7 @@
       background: url('Archive.png') no-repeat center center/cover;
       position: relative;
       overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
     }
 
     .door {
@@ -51,6 +52,67 @@
       height: 50px;
       background: red; /* 临时小人 */
     }
+
+    /* ====== PPT 按钮 ====== */
+    #ppt-button {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 20px 40px;
+      font-size: 18px;
+      background: rgba(0, 150, 255, 0.8);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+    #ppt-button:hover {
+      background: rgba(0, 200, 255, 1);
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    /* ====== 右侧弹出面板 ====== */
+    #ppt-panel {
+      position: fixed;
+      top: 0;
+      right: -80%;
+      width: 80%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      transition: right 0.6s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    #ppt-panel.active {
+      right: 0;
+    }
+
+    iframe {
+      width: 90%;
+      height: 90%;
+      border: none;
+      border-radius: 15px;
+    }
+
+    #close-panel {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+    }
+    #close-panel:hover {
+      color: #0ff;
+    }
+
   </style>
 </head>
 <body>
@@ -62,9 +124,21 @@
   <!-- 角色 -->
   <div id="character"></div>
 
+  <!-- 打开 PPT 的按钮 -->
+  <button id="ppt-button">📊 Open Archive File</button>
+
+  <!-- 右侧滑出的 Canva 面板 -->
+  <div id="ppt-panel">
+    <span id="close-panel">✖</span>
+    <iframe src="https://www.canva.com/design/DAFx123ABC/view?embed" allowfullscreen></iframe>
+  </div>
+
   <script>
     const character = document.getElementById("character");
     const doors = document.querySelectorAll(".door");
+    const pptPanel = document.getElementById("ppt-panel");
+    const pptButton = document.getElementById("ppt-button");
+    const closePanel = document.getElementById("close-panel");
 
     let x = 600, y = 400;
     const speed = 10;
@@ -95,7 +169,6 @@
           charBox.bottom > doorRect.top &&
           charBox.top < doorRect.bottom;
 
-        // 自动显示门名
         if (overlap) {
           door.classList.add("active");
           collidedDoor = door;
@@ -106,7 +179,6 @@
       return collidedDoor;
     }
 
-    // 键盘控制角色移动
     document.addEventListener("keydown", (e) => {
       let newX = x, newY = y;
 
@@ -116,19 +188,16 @@
       if (e.key === "ArrowRight") newX += speed;
 
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        // 边界限制（房间墙壁）
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
         if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
         if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
 
-        // 更新角色位置
         x = newX;
         y = newY;
         character.style.left = x + "px";
         character.style.top = y + "px";
 
-        // 检查是否靠近门
         checkCollision();
       }
 
@@ -139,6 +208,10 @@
         }
       }
     });
+
+    // 打开和关闭 Canva 面板
+    pptButton.onclick = () => pptPanel.classList.add("active");
+    closePanel.onclick = () => pptPanel.classList.remove("active");
   </script>
 </body>
 </html>
