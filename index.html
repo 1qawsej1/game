@@ -18,7 +18,7 @@
       top: 50%;
       transform: translateY(-50%);
       width: 70px;
-      height: 300px;
+      height: 30vh; /* 相对视口高度，响应式 */
       background: rgba(255, 255, 255, 0);
       display: flex;
       justify-content: center;
@@ -48,8 +48,10 @@
     /* ===== 角色样式 ===== */
     #character {
       position: absolute;
-      width: 200px;
-      height: 300px;
+      width: 10vw; /* 根据视口宽度缩放 */
+      max-width: 200px;
+      min-width: 120px;
+      aspect-ratio: 2/3; /* 固定比例 */
       background: url('1234.png') no-repeat center center / contain;
       image-rendering: crisp-edges;
       pointer-events: none;
@@ -84,32 +86,31 @@
     const character = document.getElementById("character");
     const doors = document.querySelectorAll(".door");
 
-    // 角色放到“地面”时与窗口底部的距离，调这个数直到脚位合适
-    let groundOffset = 40; // 可以改成 20 / 30 / 60 试试
+    // 角色脚与地面距离
+    let groundOffset = window.innerHeight * 0.05; // 视口高度的5%
 
     let x = 0, y = 0;
-    const speed = 8;
+    const speed = 10; // 每次移动的像素
 
     function initPosition() {
-      // 确保样式已经应用，获取真实大小
       const charW = character.offsetWidth;
       const charH = character.offsetHeight;
 
-      // 水平居中（减去半个角色宽度）
-      x = Math.round(window.innerWidth / 2 - charW / 2);
+      // 水平居中
+      x = (window.innerWidth - charW) / 2;
 
-      // 垂直放到“地面”：窗口高度 - 角色高度 - groundOffset
-      y = Math.round(window.innerHeight - charH - groundOffset);
+      // 底部对齐
+      y = window.innerHeight - charH - groundOffset;
 
-      // 防止超出边界
-      x = Math.max(0, Math.min(window.innerWidth - charW, x));
-      y = Math.max(0, Math.min(window.innerHeight - charH, y));
-
-      character.style.left = x + "px";
-      character.style.top = y + "px";
+      updateCharacter();
     }
 
-    // 重新定位：页面加载完成 / 窗口大小改变
+    function updateCharacter() {
+      character.style.left = `${x}px`;
+      character.style.top = `${y}px`;
+    }
+
+    // 初始化 + 监听窗口变化
     window.addEventListener('load', initPosition);
     window.addEventListener('resize', initPosition);
 
@@ -150,15 +151,14 @@
       if (e.key === "ArrowLeft") x -= speed;
       if (e.key === "ArrowRight") x += speed;
 
-      // 边界
+      // 边界限制
       const maxX = window.innerWidth - character.offsetWidth;
-      const maxY = window.innerHeight - character.offsetHeight;
+      const maxY = window.innerHeight - character.offsetHeight - groundOffset / 2;
       x = Math.max(0, Math.min(maxX, x));
       y = Math.max(0, Math.min(maxY, y));
 
       if (moved) {
-        character.style.left = x + "px";
-        character.style.top = y + "px";
+        updateCharacter();
         checkCollision();
       }
 
