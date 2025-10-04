@@ -1,188 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Room 1</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: url('researchlab.png') no-repeat center center/cover;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* ===== 门样式 ===== */
-    .door {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 70px;
-      height: 30vh;
-      background: rgba(255, 255, 255, 0);
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      z-index: 9; /* 让门高于角色 */
-    }
-
-    .room-bar {
-      width: max-content;
-      min-width: 100px;
-      padding: 5px 14px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      text-align: center;
-      font-size: 14px;
-      border-radius: 0 0 5px 5px;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s ease;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .door.active .room-bar {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* ===== 角色样式 ===== */
-    #character {
-  position: absolute;
-  width: 15vw;
-  aspect-ratio: 2/3;
-  background: url('1234.png') no-repeat center center / contain;
-  image-rendering: crisp-edges;
-  pointer-events: none;
-  transition: transform 0.1s linear;
-  z-index: 5;
-  animation: sway 2s ease-in-out infinite; /* 只上下摇 */
+<meta charset="UTF-8">
+<title>Room 1</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: url('researchlab.png') no-repeat center center/cover;
+  position: relative;
+  overflow: hidden;
 }
 
-    /* ✅ 摇摆动画关键帧 */
-    @keyframes sway {
-  0% { transform: translateY(0); }
-  25% { transform: translateY(-4px); }
-  50% { transform: translateY(0); }
-  75% { transform: translateY(4px); }
-  100% { transform: translateY(0); }
+.door { 
+  position:absolute; 
+  top:50%; 
+  transform:translateY(-50%); 
+  width:70px; 
+  height:30vh; 
+  display:flex; 
+  justify-content:center; 
+  align-items:flex-end; 
+  z-index:9; 
 }
 
-  <!-- 左边门 -->
-  <div class="door" style="left: 30px;" data-target="simulationlab.html">
-    <div class="room-bar">Simulation Lab</div>
-  </div>
+.room-bar { 
+  width:max-content; 
+  min-width:100px; 
+  padding:5px 14px; 
+  background:rgba(0,0,0,0.6); 
+  color:white; 
+  text-align:center; 
+  font-size:14px; 
+  border-radius:0 0 5px 5px; 
+  opacity:0; 
+  transform:translateY(100%); 
+  transition:all 0.3s ease; 
+  pointer-events:none; 
+  z-index:10; 
+}
 
-  <!-- Mission Control 门 -->
-  <div class="door" style="left: 35%;" data-target="missioncontrol.html">
-    <div class="room-bar">Mission Control</div>
-  </div>
+.door.active .room-bar { 
+  opacity:1; 
+  transform:translateY(0); 
+}
 
-  <!-- Exit 门 -->
-  <div class="door" style="left: 65%;" data-target="index.html">
-    <div class="room-bar">Exit to Homepage</div>
-  </div>
+#character {
+  position:absolute;
+  width:15vw;
+  aspect-ratio:2/3;
+  background: url('1234.png') no-repeat center/contain;
+  pointer-events:none;
+  z-index:5;
+  /* 删除 animation，改用 JS 控制摇摆 + 镜像 */
+}
+</style>
+</head>
+<body>
 
-  <!-- 右边门 -->
-  <div class="door" style="right: 30px;" data-target="archive.html">
-    <div class="room-bar">Archive</div>
-  </div>
+<!-- 左边门 -->
+<div class="door" style="left:30px;" data-target="simulationlab.html">
+  <div class="room-bar">Simulation Lab</div>
+</div>
 
-  <!-- 角色 -->
-  <div id="character"></div>
+<!-- Mission Control 门 -->
+<div class="door" style="left:35%;" data-target="missioncontrol.html">
+  <div class="room-bar">Mission Control</div>
+</div>
 
-  <script>
-    const character = document.getElementById("character");
-    const doors = document.querySelectorAll(".door");
+<!-- Exit 门 -->
+<div class="door" style="left:65%;" data-target="index.html">
+  <div class="room-bar">Exit</div>
+</div>
 
-    let groundOffset = window.innerHeight * 0.05;
-    let x = 0, y = 0;
-    const speed = 10;
-    let facingRight = true; // ✅ 方向状态
+<!-- 右边门 -->
+<div class="door" style="right:30px;" data-target="archive.html">
+  <div class="room-bar">Archive</div>
+</div>
 
-    function initPosition() {
-      const charW = character.offsetWidth;
-      const charH = character.offsetHeight;
-      x = (window.innerWidth - charW) / 2; // 水平居中
-      y = window.innerHeight - charH - groundOffset; // 底部对齐
-      updateCharacter();
-    }
+<!-- 角色 -->
+<div id="character"></div>
 
-    function updateCharacter() {
-      // ✅ 使用反引号包住模板字符串！
-      character.style.left = `${x}px`;
-      character.style.top = `${y}px`;
+<script>
+const character = document.getElementById("character");
+const doors = document.querySelectorAll(".door");
 
-      // ✅ 保持摇摆动画 + 镜像翻转
-      character.style.transform = `scaleX(${facingRight ? 1 : -1})`;
-    }
+let x=0, y=0;
+const speed=10;
+let facingRight=true;
+let groundOffset=window.innerHeight*0.05;
 
-    window.addEventListener('load', initPosition);
-    window.addEventListener('resize', initPosition);
+// 摇摆参数
+let sway=0, swayDir=1;
 
-    function checkCollision() {
-      const charBox = character.getBoundingClientRect();
-      let collidedDoor = null;
+function initPosition(){
+  x = (window.innerWidth - character.offsetWidth)/2;
+  y = window.innerHeight - character.offsetHeight - groundOffset;
+}
 
-      doors.forEach((door) => {
-        const doorRect = door.getBoundingClientRect();
-        const overlap =
-          charBox.right > doorRect.left &&
-          charBox.left < doorRect.right &&
-          charBox.bottom > doorRect.top &&
-          charBox.top < doorRect.bottom;
+function updateCharacter(){
+  // 摇摆
+  sway += swayDir*0.2;
+  if(sway>4 || sway<-4) swayDir*=-1;
 
-        if (overlap) {
-          door.classList.add("active");
-          collidedDoor = door;
-        } else {
-          door.classList.remove("active");
-        }
-      });
+  character.style.left = `${x}px`;
+  character.style.top = `${y + sway}px`;
+  // 镜像翻转
+  character.style.transform = `scaleX(${facingRight?1:-1})`;
+}
 
-      return collidedDoor;
-    }
+function checkCollision(){
+  let collided = null;
+  const charBox = character.getBoundingClientRect();
+  doors.forEach(d=>{
+    const r = d.getBoundingClientRect();
+    if(charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom){
+      d.classList.add("active");
+      collided=d;
+    } else d.classList.remove("active");
+  });
+  return collided;
+}
 
-    // 键盘控制角色移动
-    document.addEventListener("keydown", (e) => {
-      let moved = false;
+window.addEventListener('load', initPosition);
+window.addEventListener('resize', initPosition);
 
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        e.preventDefault();
-        moved = true;
-      }
+function loop(){
+  updateCharacter();
+  requestAnimationFrame(loop);
+}
+loop();
 
-      if (e.key === "ArrowUp") y -= speed;
-      if (e.key === "ArrowDown") y += speed;
-      if (e.key === "ArrowLeft") {
-        x -= speed;
-        facingRight = false; // ✅ 向左镜像
-      }
-      if (e.key === "ArrowRight") {
-        x += speed;
-        facingRight = true; // ✅ 向右恢复
-      }
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault(); }
+  if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault(); }
+  if(e.key==='ArrowUp'){ y-=speed; e.preventDefault(); }
+  if(e.key==='ArrowDown'){ y+=speed; e.preventDefault(); }
 
-      const maxX = window.innerWidth - character.offsetWidth;
-      const maxY = window.innerHeight - character.offsetHeight - groundOffset / 2;
-      x = Math.max(0, Math.min(maxX, x));
-      y = Math.max(0, Math.min(maxY, y));
+  const maxX = window.innerWidth - character.offsetWidth;
+  const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
+  x = Math.max(0, Math.min(maxX, x));
+  y = Math.max(0, Math.min(maxY, y));
 
-      if (moved) {
-        updateCharacter();
-        checkCollision();
-      }
+  checkCollision();
 
-      // 按 Enter 或 Space 进入门
-      if (e.key === "Enter" || e.key === " ") {
-        const collided = checkCollision();
-        if (collided && collided.dataset.target) {
-          window.location.href = collided.dataset.target;
-        }
-      }
-    });
-  </script>
+  if(e.key==='Enter'||e.key===' '){
+    const collided = checkCollision();
+    if(collided && collided.dataset.target) window.location.href = collided.dataset.target;
+  }
+});
+</script>
+
 </body>
 </html>
+
 
