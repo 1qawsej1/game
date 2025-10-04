@@ -13,33 +13,37 @@
     }
 
     /* ===== 门样式 ===== */
-    .door {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 70px;
-      height: 30vh;
-      background: rgba(255, 255, 255, 0);
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-    }
+.door {
+  position: relative; /* ✅ 新增：让 room-bar 的绝对定位以门为参照 */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 70px;
+  height: 30vh;
+  background: rgba(255, 255, 255, 0);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 9; /* ✅ 层级略高于角色 */
+}
 
     .room-bar {
-      width: max-content;
-      min-width: 100px;
-      padding: 5px 14px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      text-align: center;
-      font-size: 14px;
-      border-radius: 0 0 5px 5px;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s ease;
-      pointer-events: none;
-      z-index: 10;
-    }
+  position: absolute; /* ✅ 改成 absolute，脱离 flex 限制 */
+  bottom: -35px; /* ✅ 让它贴在门下边缘 */
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  width: max-content;
+  min-width: 100px;
+  padding: 5px 14px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  border-radius: 0 0 5px 5px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 9999; /* 🚀 最高优先级 */
+}
 
     .door.active .room-bar {
       opacity: 1;
