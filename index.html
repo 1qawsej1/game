@@ -14,19 +14,20 @@
 
     .door {
       position: absolute;
-      top: 195px;
-      width: 62px;
-      height: 345px;
-      background: rgba(255, 255, 255, 0.5);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 70px;
+      height: 300px;
+      background: rgba(255, 255, 255, 0); /* 永远透明 */
       display: flex;
       justify-content: center;
       align-items: flex-end;
     }
 
     .room-bar {
-      width: fit-content;
-      min-width: 80px;
-      padding: 5px 10px;
+      width: max-content;
+      min-width: 100px;
+      padding: 5px 14px;
       background: rgba(0, 0, 0, 0.6);
       color: white;
       text-align: center;
@@ -45,32 +46,34 @@
 
     #character {
       position: absolute;
-      top: 400px;
-      left: 600px;
+      top: 70%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 50px;
       height: 50px;
       background: red; /* 临时小人 */
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <!-- 左边门 -->
-  <div class="door" style="left: 25px;" data-target="simulationlab.html">
+  <div class="door" style="left: 30px;" data-target="simulationlab.html">
     <div class="room-bar">Simulation Lab</div>
   </div>
 
-  <!-- ✅ 中间第一个门：Mission Control -->
-  <div class="door" style="left: 400px;" data-target="missioncontrol.html">
+  <!-- Mission Control 门 -->
+  <div class="door" style="left: 35%;" data-target="missioncontrol.html">
     <div class="room-bar">Mission Control</div>
   </div>
 
-  <!-- ✅ 中间第二个门：Exit -->
-  <div class="door" style="left: 950px;" data-target="index.html">
+  <!-- Exit 门 -->
+  <div class="door" style="left: 65%;" data-target="index.html">
     <div class="room-bar">Exit to Homepage</div>
   </div>
 
   <!-- 右边门 -->
-  <div class="door" style="left: 1195px;" data-target="archive.html">
+  <div class="door" style="right: 30px;" data-target="archive.html">
     <div class="room-bar">Archive</div>
   </div>
 
@@ -81,29 +84,16 @@
     const character = document.getElementById("character");
     const doors = document.querySelectorAll(".door");
 
-    let x = 600, y = 400;
+    let x = window.innerWidth / 2 - 25; // 居中
+    let y = window.innerHeight * 0.7;
     const speed = 10;
-    const roomWidth = window.innerWidth;
-    const roomHeight = window.innerHeight;
 
     function checkCollision() {
-      const charBox = {
-        left: x,
-        right: x + character.offsetWidth,
-        top: y,
-        bottom: y + character.offsetHeight
-      };
-
+      const charBox = character.getBoundingClientRect();
       let collidedDoor = null;
 
       doors.forEach((door) => {
-        const doorRect = {
-          left: door.offsetLeft,
-          right: door.offsetLeft + door.offsetWidth,
-          top: door.offsetTop,
-          bottom: door.offsetTop + door.offsetHeight
-        };
-
+        const doorRect = door.getBoundingClientRect();
         const overlap =
           charBox.right > doorRect.left &&
           charBox.left < doorRect.right &&
@@ -122,28 +112,24 @@
     }
 
     document.addEventListener("keydown", (e) => {
-      let newX = x, newY = y;
-
-      if (e.key === "ArrowUp") newY -= speed;
-      if (e.key === "ArrowDown") newY += speed;
-      if (e.key === "ArrowLeft") newX -= speed;
-      if (e.key === "ArrowRight") newX += speed;
-
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        if (newX < 0) newX = 0;
-        if (newY < 0) newY = 0;
-        if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
-        if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
+        e.preventDefault(); // 防止页面滚动
 
-        x = newX;
-        y = newY;
+        if (e.key === "ArrowUp") y -= speed;
+        if (e.key === "ArrowDown") y += speed;
+        if (e.key === "ArrowLeft") x -= speed;
+        if (e.key === "ArrowRight") x += speed;
+
+        // 边界
+        x = Math.max(0, Math.min(window.innerWidth - character.offsetWidth, x));
+        y = Math.max(0, Math.min(window.innerHeight - character.offsetHeight, y));
+
         character.style.left = x + "px";
         character.style.top = y + "px";
 
         checkCollision();
       }
 
-      // ✅ 按 Enter 或 空格 进入门
       if (e.key === "Enter" || e.key === " ") {
         const collided = checkCollision();
         if (collided) {
@@ -154,4 +140,3 @@
   </script>
 </body>
 </html>
-
