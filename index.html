@@ -37,7 +37,8 @@
       pointer-events: none;
     }
 
-    .door:hover .room-bar {
+    /* 当角色靠近时也显示（加active类） */
+    .door.active .room-bar {
       opacity: 1;
       transform: translateY(0);
     }
@@ -99,10 +100,15 @@
           charBox.bottom > doorRect.top &&
           charBox.top < doorRect.bottom;
 
+        // 切换门名字显示状态
         if (overlap) {
+          door.classList.add("active");
           collidedDoor = door;
+        } else {
+          door.classList.remove("active");
         }
       });
+
       return collidedDoor;
     }
 
@@ -115,17 +121,18 @@
       if (e.key === "ArrowRight") newX += speed;
 
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        // 边界限制（房间墙壁）
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
         if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
         if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
 
-        // 更新位置
         x = newX;
         y = newY;
         character.style.left = x + "px";
         character.style.top = y + "px";
+
+        // 每次移动时检测是否靠近门
+        checkCollision();
       }
 
       if (e.key === "Enter" || e.key === " ") {
@@ -138,3 +145,4 @@
   </script>
 </body>
 </html>
+
