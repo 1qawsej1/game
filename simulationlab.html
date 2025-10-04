@@ -147,7 +147,7 @@ function checkCollision() {
     const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
     const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
     if(overlap){
-      door.classList.add("active");
+      door.classList.add("active"); // 碰撞时显示黑色提示框
       collidedDoor = door;
     } else door.classList.remove("active");
   });
@@ -157,6 +157,7 @@ function checkCollision() {
 // 循环更新
 function loop() {
   updateCharacter();
+  checkCollision(); // 每帧检测，保证门提示持续显示
   requestAnimationFrame(loop);
 }
 loop();
@@ -176,9 +177,8 @@ document.addEventListener('keydown', (e)=>{
   x = Math.max(0, Math.min(maxX, x));
   y = Math.max(0, Math.min(maxY, y));
 
-  const collided = checkCollision();
-
   if(e.key==='Enter'||e.key===' '){
+    const collided = checkCollision();
     if(collided){
       if(collided.dataset.type==='simulator'){
         simulatorPanel.classList.add('active');
