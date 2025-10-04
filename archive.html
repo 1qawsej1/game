@@ -18,7 +18,7 @@
       top: 195px;
       width: 62px;
       height: 345px;
-      background: rgba(255, 255, 255, 1); /* 永远透明 */
+      background: rgba(255, 255, 255, 0); /* 永远透明 */
       display: flex;
       justify-content: center;
       align-items: flex-end;
@@ -53,7 +53,15 @@
       background: red; /* 临时小人 */
     }
 
-    /* ====== 右侧弹出 Canva 面板 ====== */
+    /* ====== Canva 门样式（更大）====== */
+    .door.ppt-door {
+      width: 150px;
+      height: 380px;
+      top: 180px;
+      right: 80px;
+    }
+
+    /* ====== 右侧弹出面板 ====== */
     #ppt-panel {
       position: fixed;
       top: 0;
@@ -88,11 +96,9 @@
       color: white;
       cursor: pointer;
     }
-
     #close-panel:hover {
       color: #0ff;
     }
-
   </style>
 </head>
 <body>
@@ -101,15 +107,15 @@
     <div class="room-bar">Main Lab</div>
   </div>
 
-  <!-- 右边的“PPT门” -->
-  <div class="door" style="left: 1150px;" data-type="ppt">
-    <div class="room-bar">Archive Files</div>
+  <!-- 右边 PPT 门 -->
+  <div class="door ppt-door" data-type="ppt">
+    <div class="room-bar">Open Archive File</div>
   </div>
 
   <!-- 角色 -->
   <div id="character"></div>
 
-  <!-- 右侧滑出的 Canva 面板 -->
+  <!-- 右侧弹出 Canva 面板 -->
   <div id="ppt-panel">
     <span id="close-panel">✖</span>
     <iframe src="https://www.canva.com/design/DAFx123ABC/view?embed" allowfullscreen></iframe>
@@ -160,7 +166,7 @@
       return collidedDoor;
     }
 
-    // 键盘控制移动与交互
+    // 键盘控制角色移动
     document.addEventListener("keydown", (e) => {
       let newX = x, newY = y;
 
@@ -187,7 +193,7 @@
         const collided = checkCollision();
         if (collided) {
           if (collided.dataset.type === "ppt") {
-            pptPanel.classList.add("active");
+            pptPanel.classList.add("active"); // 打开 Canva 面板
           } else if (collided.dataset.target) {
             window.location.href = collided.dataset.target;
           }
@@ -195,6 +201,7 @@
       }
     });
 
+    // 关闭 Canva 面板
     closePanel.onclick = () => pptPanel.classList.remove("active");
   </script>
 </body>
