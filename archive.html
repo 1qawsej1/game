@@ -1,215 +1,213 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>Archive</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: url('Archive.png') no-repeat center center/cover;
-      position: relative;
-      overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
-    }
+<meta charset="UTF-8">
+<title>Archive with Photos</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: url('Archive.png') no-repeat center center/cover;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
 
-    .door {
-      position: absolute;
-      top: 195px;
-      width: 62px;
-      height: 345px;
-      background: rgba(255, 255, 255, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-    }
+.door {
+  position: absolute;
+  top: 195px;
+  width: 62px;
+  height: 345px;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
 
-    .room-bar {
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      text-align: center;
-      font-size: 14px;
-      padding: 6px 20px;
-      border-radius: 0 0 8px 8px;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s ease;
-      pointer-events: none;
-      min-width: 120px;
-      width: fit-content;
-    }
+.room-bar {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  padding: 6px 20px;
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  min-width: 120px;
+  width: fit-content;
+}
 
-    .door.active .room-bar {
-      opacity: 1;
-      transform: translateY(0);
-    }
+.door.active .room-bar {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-    #character {
-      position: absolute;
-      width: 15vw;
-      aspect-ratio: 2/3;
-      background: url('1234.png') no-repeat center/contain;
-      z-index: 5;
-      transition: transform 0.3s ease-in-out;
-      visibility: hidden;
-    }
+#character {
+  position: absolute;
+  width: 15vw;
+  aspect-ratio: 2/3;
+  background: url('1234.png') no-repeat center/contain;
+  z-index: 5;
+  transition: transform 0.3s ease-in-out;
+  visibility: hidden;
+}
 
-    .door.ppt-door {
-      width: 600px;
-      height: 500px;
-      top: 0px;
-      right: 20px;
-    }
+.door.photo-door {
+  width: 600px;
+  height: 500px;
+  top: 0px;
+  right: 20px;
+}
 
-    #ppt-panel {
-      position: fixed;
-      top: 0;
-      right: -80%;
-      width: 80%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(10px);
-      transition: right 0.6s ease;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
+#photo-panel {
+  position: fixed;
+  top: 0;
+  right: -80%;
+  width: 80%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(5px);
+  transition: right 0.6s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+  z-index: 100;
+  overflow-y: auto;
+}
 
-    #ppt-panel.active {
-      right: 0;
-    }
+#photo-panel.active {
+  right: 0;
+}
 
-    iframe {
-      width: 90%;
-      height: 90%;
-      border: none;
-      border-radius: 15px;
-    }
+#photo-panel img {
+  max-width: 80%;
+  margin: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #000;
+}
 
-    #close-panel {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 28px;
-      color: white;
-      cursor: pointer;
-    }
-
-    #close-panel:hover {
-      color: #0ff;
-    }
-  </style>
+#close-panel {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+}
+#close-panel:hover { color: #0ff; }
+</style>
 </head>
 <body>
-  <!-- 左边门 -->
-  <div class="door" style="left: 25px;" data-target="index.html">
-    <div class="room-bar">Main Lab</div>
-  </div>
 
-  <!-- 右边 Google Slides 门 -->
-  <div class="door ppt-door" data-type="ppt">
-    <div class="room-bar">Open Archive Files</div>
-  </div>
+<!-- 左门 -->
+<div class="door" style="left: 25px;" data-target="index.html">
+  <div class="room-bar">Main Lab</div>
+</div>
 
-  <!-- 角色 -->
-  <div id="character"></div>
+<!-- 右门，打开照片面板 -->
+<div class="door photo-door" data-type="photo">
+  <div class="room-bar">Open Archive Photos</div>
+</div>
 
-  <!-- 右侧滑出 Google Slides 面板 -->
-  <div id="ppt-panel">
-    <span id="close-panel">✖</span>
-    <div style="text-align: center; color: white; font-size: 18px; padding: 10px;">
-      <p>Archive Files：</p>
-    </div>
-    <iframe 
-      src="https://docs.google.com/presentation/d/1xZ0TWzo59uP82Q0mQHuiPT0SLRg8iv6W/edit?usp=sharing&ouid=116757983142432088988&rtpof=true&sd=true" 
-      style="width: 90%; height: 80%; border: none; border-radius: 8px;" 
-      allowfullscreen
-    ></iframe>
-  </div>
+<!-- 角色 -->
+<div id="character"></div>
 
-  <script>
-    const character = document.getElementById("character");
-    const doors = document.querySelectorAll(".door");
-    const pptPanel = document.getElementById("ppt-panel");
-    const closePanel = document.getElementById("close-panel");
+<!-- 照片弹出面板 -->
+<div id="photo-panel">
+  <span id="close-panel">✖</span>
+  <p style="color:white; font-size:18px;">档案照片如下：</p>
+  <img src="img1.png" alt="Photo 1">
+  <img src="img2.png" alt="Photo 2">
+  <img src="img3.png" alt="Photo 3">
+  <img src="img4.png" alt="Photo 4">
+  <img src="img5.png" alt="Photo 5">
+  <img src="img6.png" alt="Photo 6">
+  <img src="img7.png" alt="Photo 7">
+  <img src="img8.png" alt="Photo 8">
+  <img src="img9.png" alt="Photo 9">
+</div>
 
-    let x, y; 
-    const speed=10;
-    let facingRight=true;
-    let sway=0, swayDir=1;
-    const groundOffset = window.innerHeight*0.05;
+<script>
+const character = document.getElementById("character");
+const doors = document.querySelectorAll(".door");
+const photoPanel = document.getElementById("photo-panel");
+const closePanel = document.getElementById("close-panel");
 
-    character.style.visibility = "hidden";
+let x, y;
+const speed=10;
+let facingRight=true;
+let sway=0, swayDir=1;
+const groundOffset = window.innerHeight*0.05;
 
-    function initPosition(){
-      x = (window.innerWidth - character.offsetWidth)/2;
-      y = window.innerHeight - character.offsetHeight - groundOffset;
-      character.style.left = x + "px";
-      character.style.top = y + "px";
-      character.style.visibility = "visible"; 
-    }
+character.style.visibility = "hidden";
 
-    function updateCharacter(){
-      sway += swayDir*0.2;
-      if(sway>4 || sway<-4) swayDir*=-1;
+function initPosition(){
+  x = (window.innerWidth - character.offsetWidth)/2;
+  y = window.innerHeight - character.offsetHeight - groundOffset;
+  character.style.left = x + "px";
+  character.style.top = y + "px";
+  character.style.visibility = "visible";
+}
 
-      character.style.left = `${x}px`;
-      character.style.top = `${y + sway}px`;
-      character.style.transform = `scaleX(${facingRight?1:-1})`;
-    }
+function updateCharacter(){
+  sway += swayDir*0.2;
+  if(sway>4 || sway<-4) swayDir*=-1;
+  character.style.left = `${x}px`;
+  character.style.top = `${y + sway}px`;
+  character.style.transform = `scaleX(${facingRight?1:-1})`;
+}
 
-    function checkCollision(){
-      const charBox = { left:x, right:x+character.offsetWidth, top:y, bottom:y+character.offsetHeight };
-      let collidedDoor = null;
-      doors.forEach(door=>{
-        const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
-        const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
-        if(overlap){
-          door.classList.add("active");
-          collidedDoor = door;
-        } else door.classList.remove("active");
-      });
-      return collidedDoor;
-    }
+function checkCollision(){
+  const charBox = { left:x, right:x+character.offsetWidth, top:y, bottom:y+character.offsetHeight };
+  let collidedDoor = null;
+  doors.forEach(door=>{
+    const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
+    const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
+    if(overlap){
+      door.classList.add("active");
+      collidedDoor = door;
+    } else door.classList.remove("active");
+  });
+  return collidedDoor;
+}
 
-    function loop(){
-      updateCharacter();
-      requestAnimationFrame(loop);
-    }
-    loop();
+function loop(){
+  updateCharacter();
+  requestAnimationFrame(loop);
+}
+loop();
 
-    window.addEventListener('load', initPosition);
-    window.addEventListener('resize', initPosition);
+window.addEventListener('load', initPosition);
+window.addEventListener('resize', initPosition);
 
-    document.addEventListener('keydown', (e)=>{
-      if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault();}
-      if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault();}
-      if(e.key==='ArrowUp'){ y-=speed; e.preventDefault();}
-      if(e.key==='ArrowDown'){ y+=speed; e.preventDefault();}
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault();}
+  if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault();}
+  if(e.key==='ArrowUp'){ y-=speed; e.preventDefault();}
+  if(e.key==='ArrowDown'){ y+=speed; e.preventDefault();}
 
-      const maxX = window.innerWidth - character.offsetWidth;
-      const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
-      x = Math.max(0, Math.min(maxX, x));
-      y = Math.max(0, Math.min(maxY, y));
+  const maxX = window.innerWidth - character.offsetWidth;
+  const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
+  x = Math.max(0, Math.min(maxX, x));
+  y = Math.max(0, Math.min(maxY, y));
 
-      checkCollision();
-
-      if(e.key==='Enter'||e.key===' '){
-        const collided = checkCollision();
-        if(collided){
-          if(collided.dataset.type==='ppt'){
-            pptPanel.classList.add('active');
-          } else if(collided.dataset.target){
-            window.location.href = collided.dataset.target;
-          }
-        }
+  const collided = checkCollision();
+  if(e.key==='Enter'||e.key===' '){
+    if(collided){
+      if(collided.dataset.type==='photo'){
+        photoPanel.classList.add('active');
+      } else if(collided.dataset.target){
+        window.location.href = collided.dataset.target;
       }
-    });
+    }
+  }
+});
 
-    closePanel.onclick = ()=> pptPanel.classList.remove('active');
-  </script>
+closePanel.onclick = ()=> photoPanel.classList.remove('active');
+</script>
 </body>
 </html>
-
 
