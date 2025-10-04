@@ -46,12 +46,12 @@
 
     #character {
       position: absolute;
-      width: 15vw; /* Room 页面的大小 */
+      width: 15vw;
       aspect-ratio: 2/3;
       background: url('1234.png') no-repeat center/contain;
       z-index: 5;
       transition: transform 0.3s ease-in-out;
-      visibility: hidden; /* 初始隐藏，避免闪烁 */
+      visibility: hidden;
     }
 
     .door.ppt-door {
@@ -107,7 +107,7 @@
     <div class="room-bar">Main Lab</div>
   </div>
 
-  <!-- 右边 PPT 门 -->
+  <!-- 右边 Google Slides 门 -->
   <div class="door ppt-door" data-type="ppt">
     <div class="room-bar">Open Archive Files</div>
   </div>
@@ -115,20 +115,18 @@
   <!-- 角色 -->
   <div id="character"></div>
 
-<!-- 右侧滑出 Canva 面板 -->
-<div id="ppt-panel">
-  <span id="close-panel">✖</span>
-  <div style="text-align: center; color: white; font-size: 18px; padding: 10px;">
-    <p>档案内容显示如下：</p>
+  <!-- 右侧滑出 Google Slides 面板 -->
+  <div id="ppt-panel">
+    <span id="close-panel">✖</span>
+    <div style="text-align: center; color: white; font-size: 18px; padding: 10px;">
+      <p>Archive Files：</p>
+    </div>
+    <iframe 
+      src="https://docs.google.com/presentation/d/1xZ0TWzo59uP82Q0mQHuiPT0SLRg8iv6W/edit?usp=sharing&ouid=116757983142432088988&rtpof=true&sd=true" 
+      style="width: 90%; height: 80%; border: none; border-radius: 8px;" 
+      allowfullscreen
+    ></iframe>
   </div>
-  <iframe 
-    src="https://www.canva.com/design/DAG0zz1yhCQ/Yr_xqnfHQGkhS09R7T-BJg/edit?utm_content=DAG0zz1yhCQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton" 
-    style="width: 90%; height: 80%; border: none; border-radius: 8px;" 
-    allowfullscreen
-  ></iframe>
-</div>
-
-
 
   <script>
     const character = document.getElementById("character");
@@ -136,13 +134,12 @@
     const pptPanel = document.getElementById("ppt-panel");
     const closePanel = document.getElementById("close-panel");
 
-    let x, y; // 不给初始值
+    let x, y; 
     const speed=10;
     let facingRight=true;
     let sway=0, swayDir=1;
     const groundOffset = window.innerHeight*0.05;
 
-    // 页面加载前隐藏角色
     character.style.visibility = "hidden";
 
     function initPosition(){
@@ -150,17 +147,15 @@
       y = window.innerHeight - character.offsetHeight - groundOffset;
       character.style.left = x + "px";
       character.style.top = y + "px";
-      character.style.visibility = "visible"; // 定位好了再显示
+      character.style.visibility = "visible"; 
     }
 
     function updateCharacter(){
-      // 摇摆
       sway += swayDir*0.2;
       if(sway>4 || sway<-4) swayDir*=-1;
 
       character.style.left = `${x}px`;
       character.style.top = `${y + sway}px`;
-      // 镜像翻转
       character.style.transform = `scaleX(${facingRight?1:-1})`;
     }
 
