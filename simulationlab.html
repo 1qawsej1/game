@@ -1,140 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Simulation Lab</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: url('Simulationlab.png') no-repeat center center/cover;
-      position: relative;
-      overflow: hidden;
-    }
+<meta charset="UTF-8">
+<title>Simulation Lab</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: url('Simulationlab.png') no-repeat center center/cover;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
 
-    .door {
-      position: absolute;
-      top: 195px;
-      width: 62px;
-      height: 345px;
-      background: rgba(255, 255, 255, 0); /* 永远透明 */
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-    }
+/* 门按钮样式 */
+.door {
+  position: absolute;
+  top: 195px;
+  width: 62px;
+  height: 345px;
+  background: rgba(255,255,255,0);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
 
-    .room-bar {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      text-align: center;
-      font-size: 14px;
-      padding: 5px 0;
-      border-radius: 0 0 5px 5px;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s ease;
-      pointer-events: none;
-    }
+.room-bar {
+  width: max-content;
+  min-width: 100px;
+  padding: 5px 14px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  border-radius: 0 0 5px 5px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
 
-    .door:hover .room-bar {
-      opacity: 1;
-      transform: translateY(0);
-    }
+.door.active .room-bar {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-    #character {
-      position: absolute;
-      top: 400px;
-      left: 600px;
-      width: 50px;
-      height: 50px;
-      background: red; /* 临时小人 */
-    }
-  </style>
+/* 角色 */
+#character {
+  position: absolute;
+  width: 15vw;
+  aspect-ratio: 2/3;
+  background: url('1234.png') no-repeat center/contain;
+  pointer-events: none;
+  z-index: 5;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Meteor Simulator 面板 (iframe) */
+#simulator-panel {
+  position: fixed;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
+  transition: top 0.5s ease;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#simulator-panel.active {
+  top: 0;
+}
+
+#simulator-panel iframe {
+  width: 90%;
+  height: 90%;
+  border: none;
+  border-radius: 10px;
+}
+
+#close-simulator {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 28px;
+  cursor: pointer;
+  color: #fff;
+}
+#close-simulator:hover { color: #0ff; }
+
+</style>
 </head>
 <body>
-  <!-- 左边门 -->
-  <div class="door" style="left: 25px;" data-target="simulationlab.html">
-    <div class="room-bar">Simulation Lab</div>
-  </div>
 
-  <!-- 右边门 -->
-  <div class="door" style="left: 1195px;" data-target="index.html">
-    <div class="room-bar">Main Lab</div>
-  </div>
+<!-- 角色 -->
+<div id="character"></div>
 
-  <!-- 角色 -->
-  <div id="character"></div>
+<!-- 左边门按钮 -->
+<div class="door" style="left:30px;" data-type="simulator">
+  <div class="room-bar">Meteor Impact Simulator</div>
+</div>
 
-  <script>
-    const character = document.getElementById("character");
-    const doors = document.querySelectorAll(".door");
+<!-- 其他门 -->
+<div class="door" style="left:1195px;" data-target="index.html">
+  <div class="room-bar">Main Lab</div>
+</div>
 
-    let x = 600, y = 400;
-    const speed = 10;
-    const roomWidth = window.innerWidth;
-    const roomHeight = window.innerHeight;
+<!-- Meteor Simulator 面板 -->
+<div id="simulator-panel">
+  <span id="close-simulator">✖</span>
+  <!-- iframe 嵌入 HTML 文件 -->
+  <iframe src="meteor.html"></iframe>
+</div>
 
-    // 检查角色是否和门重叠
-    function checkCollision() {
-      const charBox = {
-        left: x,
-        right: x + character.offsetWidth,
-        top: y,
-        bottom: y + character.offsetHeight
-      };
+<script>
+const character = document.getElementById("character");
+const doors = document.querySelectorAll(".door");
+const simulatorPanel = document.getElementById("simulator-panel");
+const closeSimulator = document.getElementById("close-simulator");
 
-      let collidedDoor = null;
-      doors.forEach((door) => {
-        const doorRect = {
-          left: door.offsetLeft,
-          right: door.offsetLeft + door.offsetWidth,
-          top: door.offsetTop,
-          bottom: door.offsetTop + door.offsetHeight
-        };
+let x=600, y=400;
+const speed=10;
+let facingRight=true;
 
-        const overlap =
-          charBox.right > doorRect.left &&
-          charBox.left < doorRect.right &&
-          charBox.bottom > doorRect.top &&
-          charBox.top < doorRect.bottom;
+function checkCollision(){
+  let collided=null;
+  const charBox=character.getBoundingClientRect();
+  doors.forEach(d=>{
+    const r=d.getBoundingClientRect();
+    if(charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom){
+      d.classList.add("active");
+      collided=d;
+    } else d.classList.remove("active");
+  });
+  return collided;
+}
 
-        if (overlap) {
-          collidedDoor = door;
-        }
-      });
-      return collidedDoor;
+// 键盘控制
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault(); }
+  if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault(); }
+  if(e.key==='ArrowUp'){ y-=speed; e.preventDefault(); }
+  if(e.key==='ArrowDown'){ y+=speed; e.preventDefault(); }
+
+  // 边界
+  const maxX=window.innerWidth-character.offsetWidth;
+  const maxY=window.innerHeight-character.offsetHeight;
+  x=Math.max(0, Math.min(maxX,x));
+  y=Math.max(0, Math.min(maxY,y));
+
+  character.style.left=x+'px';
+  character.style.top=y+'px';
+  character.style.transform=`scaleX(${facingRight?1:-1})`;
+
+  const collided = checkCollision();
+
+  // 按 Enter 打开模拟器
+  if((e.key==='Enter'||e.key===' ') && collided){
+    if(collided.dataset.type==='simulator'){
+      simulatorPanel.classList.add('active');
+    } else if(collided.dataset.target){
+      window.location.href=collided.dataset.target;
     }
+  }
+});
 
-    document.addEventListener("keydown", (e) => {
-      let newX = x, newY = y;
+// 关闭面板
+closeSimulator.onclick = ()=>simulatorPanel.classList.remove('active');
 
-      if (e.key === "ArrowUp") newY -= speed;
-      if (e.key === "ArrowDown") newY += speed;
-      if (e.key === "ArrowLeft") newX -= speed;
-      if (e.key === "ArrowRight") newX += speed;
+</script>
 
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        // 边界限制（房间墙壁）
-        if (newX < 0) newX = 0;
-        if (newY < 0) newY = 0;
-        if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
-        if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
-
-        // 更新位置
-        x = newX;
-        y = newY;
-        character.style.left = x + "px";
-        character.style.top = y + "px";
-      }
-
-      if (e.key === "Enter" || e.key === " ") {
-        const collided = checkCollision();
-        if (collided) {
-          window.location.href = collided.dataset.target;
-        }
-      }
-    });
-  </script>
 </body>
 </html>
