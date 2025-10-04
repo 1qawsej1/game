@@ -51,6 +51,7 @@
       background: url('1234.png') no-repeat center/contain;
       z-index: 5;
       transition: transform 0.3s ease-in-out;
+      visibility: hidden; /* 初始隐藏，避免闪烁 */
     }
 
     .door.ppt-door {
@@ -126,15 +127,21 @@
     const pptPanel = document.getElementById("ppt-panel");
     const closePanel = document.getElementById("close-panel");
 
-    let x=0, y=0;
+    let x, y; // 不给初始值
     const speed=10;
     let facingRight=true;
     let sway=0, swayDir=1;
     const groundOffset = window.innerHeight*0.05;
 
+    // 页面加载前隐藏角色
+    character.style.visibility = "hidden";
+
     function initPosition(){
       x = (window.innerWidth - character.offsetWidth)/2;
       y = window.innerHeight - character.offsetHeight - groundOffset;
+      character.style.left = x + "px";
+      character.style.top = y + "px";
+      character.style.visibility = "visible"; // 定位好了再显示
     }
 
     function updateCharacter(){
@@ -149,27 +156,15 @@
     }
 
     function checkCollision(){
-      const charBox = {
-        left: x,
-        right: x + character.offsetWidth,
-        top: y,
-        bottom: y + character.offsetHeight
-      };
+      const charBox = { left:x, right:x+character.offsetWidth, top:y, bottom:y+character.offsetHeight };
       let collidedDoor = null;
-      doors.forEach((door)=>{
-        const r = {
-          left: door.offsetLeft,
-          right: door.offsetLeft + door.offsetWidth,
-          top: door.offsetTop,
-          bottom: door.offsetTop + door.offsetHeight
-        };
+      doors.forEach(door=>{
+        const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
         const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
         if(overlap){
           door.classList.add("active");
           collidedDoor = door;
-        } else {
-          door.classList.remove("active");
-        }
+        } else door.classList.remove("active");
       });
       return collidedDoor;
     }
@@ -189,7 +184,6 @@
       if(e.key==='ArrowUp'){ y-=speed; e.preventDefault();}
       if(e.key==='ArrowDown'){ y+=speed; e.preventDefault();}
 
-      // 限制边界
       const maxX = window.innerWidth - character.offsetWidth;
       const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
       x = Math.max(0, Math.min(maxX, x));
@@ -213,4 +207,5 @@
   </script>
 </body>
 </html>
+
 
