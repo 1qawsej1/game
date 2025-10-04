@@ -64,6 +64,7 @@ body {
   transition: top 0.5s ease;
   z-index: 100;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -95,17 +96,24 @@ body {
 
 <div id="character"></div>
 
+<!-- 模拟器门 -->
 <div class="door" style="left:30px;" data-type="simulator">
   <div class="room-bar">Meteor Impact Simulator</div>
 </div>
 
+<!-- 主实验室门 -->
 <div class="door" style="left:1195px;" data-target="index.html">
   <div class="room-bar">Main Lab</div>
 </div>
 
+<!-- 滑出 Google Slides 面板 -->
 <div id="simulator-panel">
   <span id="close-simulator">✖</span>
-  <iframe src="nasa.html"></iframe>
+  <div style="color:white; font-size:18px; margin-bottom:10px; text-align:center;">Meteor Impact Slides</div>
+  <iframe 
+    src="https://docs.google.com/presentation/d/e/2PACX-1vTXXXXXXX/embed?start=false&loop=false&delayms=3000" 
+    allowfullscreen
+  ></iframe>
 </div>
 
 <script>
@@ -147,7 +155,7 @@ function checkCollision() {
     const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
     const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
     if(overlap){
-      door.classList.add("active"); // 碰撞时显示黑色提示框
+      door.classList.add("active"); // 碰撞时显示提示框
       collidedDoor = door;
     } else door.classList.remove("active");
   });
@@ -157,7 +165,7 @@ function checkCollision() {
 // 循环更新
 function loop() {
   updateCharacter();
-  checkCollision(); // 每帧检测，保证门提示持续显示
+  checkCollision(); // 每帧检测门碰撞
   requestAnimationFrame(loop);
 }
 loop();
@@ -194,4 +202,3 @@ closeSimulator.onclick = ()=>simulatorPanel.classList.remove('active');
 
 </body>
 </html>
-
