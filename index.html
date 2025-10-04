@@ -17,19 +17,20 @@
       top: 195px;
       width: 62px;
       height: 345px;
-      background: rgba(255, 255, 255, 0); /* 永远透明 */
+      background: rgba(255, 255, 255, 0);
       display: flex;
       justify-content: center;
       align-items: flex-end;
     }
 
     .room-bar {
-      width: 100%;
+      width: fit-content;
+      min-width: 80px;
+      padding: 5px 10px;
       background: rgba(0, 0, 0, 0.6);
       color: white;
       text-align: center;
       font-size: 14px;
-      padding: 5px 0;
       border-radius: 0 0 5px 5px;
       opacity: 0;
       transform: translateY(100%);
@@ -37,7 +38,6 @@
       pointer-events: none;
     }
 
-    /* 当角色靠近时也显示（加active类） */
     .door.active .room-bar {
       opacity: 1;
       transform: translateY(0);
@@ -59,6 +59,16 @@
     <div class="room-bar">Simulation Lab</div>
   </div>
 
+  <!-- ✅ 中间第一个门：Mission Control -->
+  <div class="door" style="left: 500px;" data-target="missioncontrol.html">
+    <div class="room-bar">Mission Control</div>
+  </div>
+
+  <!-- ✅ 中间第二个门：Exit -->
+  <div class="door" style="left: 800px;" data-target="index.html">
+    <div class="room-bar">Exit</div>
+  </div>
+
   <!-- 右边门 -->
   <div class="door" style="left: 1195px;" data-target="archive.html">
     <div class="room-bar">Archive</div>
@@ -76,7 +86,6 @@
     const roomWidth = window.innerWidth;
     const roomHeight = window.innerHeight;
 
-    // 检查角色是否和门重叠
     function checkCollision() {
       const charBox = {
         left: x,
@@ -86,6 +95,7 @@
       };
 
       let collidedDoor = null;
+
       doors.forEach((door) => {
         const doorRect = {
           left: door.offsetLeft,
@@ -100,7 +110,6 @@
           charBox.bottom > doorRect.top &&
           charBox.top < doorRect.bottom;
 
-        // 切换门名字显示状态
         if (overlap) {
           door.classList.add("active");
           collidedDoor = door;
@@ -131,10 +140,10 @@
         character.style.left = x + "px";
         character.style.top = y + "px";
 
-        // 每次移动时检测是否靠近门
         checkCollision();
       }
 
+      // ✅ 按 Enter 或 空格 进入门
       if (e.key === "Enter" || e.key === " ") {
         const collided = checkCollision();
         if (collided) {
