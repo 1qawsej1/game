@@ -49,28 +49,25 @@
 
     /* ===== 角色样式 ===== */
     #character {
-      position: absolute;
-      width: 15vw;
-      aspect-ratio: 2/3;
-      background: url('1234.png') no-repeat center center / contain;
-      image-rendering: crisp-edges;
-      pointer-events: none;
-      transition: transform 0.1s linear;
-      z-index: 5;
-      animation: sway 2s ease-in-out infinite; /* ✅ 添加摇摆动画 */
-    }
+  position: absolute;
+  width: 15vw;
+  aspect-ratio: 2/3;
+  background: url('1234.png') no-repeat center center / contain;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  transition: transform 0.1s linear;
+  z-index: 5;
+  animation: sway 2s ease-in-out infinite; /* 只上下摇 */
+}
 
     /* ✅ 摇摆动画关键帧 */
     @keyframes sway {
-      0% { transform: translateY(0) scaleX(1); }
-      25% { transform: translateY(-4px) scaleX(1.02); }
-      50% { transform: translateY(0) scaleX(1); }
-      75% { transform: translateY(4px) scaleX(0.98); }
-      100% { transform: translateY(0) scaleX(1); }
-    }
-  </style>
-</head>
-<body>
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-4px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(4px); }
+  100% { transform: translateY(0); }
+}
 
   <!-- 左边门 -->
   <div class="door" style="left: 30px;" data-target="simulationlab.html">
