@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -385,7 +424,7 @@
                             Launch a high-speed spacecraft to collide with the asteroid, transferring momentum to alter its trajectory.
                         </p>
                         <div class="tech-stats">
-                            <div class="stat">Success Rate: <span class="stat-value">75%</span></div>
+                            <div class="stat">Success Rate: <span class="stat-value">10%</span></div>
                             <div class="stat">Mission Duration: <span class="stat-value">14 months</span></div>
                             <div class="stat">Technology: <span class="stat-value">Proven (DART Mission)</span></div>
                             <div class="stat">Risk Level: <span class="stat-value">Medium</span></div>
@@ -401,7 +440,7 @@
                             Position a spacecraft near the asteroid to use gravitational forces to gradually pull it off course.
                         </p>
                         <div class="tech-stats">
-                            <div class="stat">Success Rate: <span class="stat-value">90%</span></div>
+                            <div class="stat">Success Rate: <span class="stat-value">5%</span></div>
                             <div class="stat">Mission Duration: <span class="stat-value">20 months</span></div>
                             <div class="stat">Technology: <span class="stat-value">Experimental</span></div>
                             <div class="stat">Risk Level: <span class="stat-value">Low</span></div>
@@ -417,7 +456,7 @@
                             Detonate a nuclear device near the asteroid surface to vaporize material and create thrust for deflection.
                         </p>
                         <div class="tech-stats">
-                            <div class="stat">Success Rate: <span class="stat-value">85%</span></div>
+                            <div class="stat">Success Rate: <span class="stat-value">95%</span></div>
                             <div class="stat">Mission Duration: <span class="stat-value">16 months</span></div>
                             <div class="stat">Technology: <span class="stat-value">Theoretical</span></div>
                             <div class="stat">Risk Level: <span class="stat-value">High</span></div>
@@ -427,13 +466,13 @@
                     <div class="tech-option" onclick="selectTech('laser')">
                         <div class="tech-header">
                             <div class="tech-name">🔬 LASER ABLATION</div>
-                            <div class="tech-cost">$3.5B</div>
+achel                            <div class="tech-cost">$3.5B</div>
                         </div>
                         <p style="color: #94a3b8; margin: 10px 0;">
                             Use high-powered lasers to vaporize asteroid surface material, creating thrust through ablation.
                         </p>
                         <div class="tech-stats">
-                            <div class="stat">Success Rate: <span class="stat-value">65%</span></div>
+                            <div class="stat">Success Rate: <span class="stat-value">5%</span></div>
                             <div class="stat">Mission Duration: <span class="stat-value">18 months</span></div>
                             <div class="stat">Technology: <span class="stat-value">Experimental</span></div>
                             <div class="stat">Risk Level: <span class="stat-value">Very High</span></div>
@@ -477,7 +516,7 @@
                         </div>
                         <div>
                             <div class="info-label">Success Probability</div>
-                            <div class="info-value" id="success-prob">75%</div>
+                            <div class="info-value" id="success-prob">0%</div>
                         </div>
                     </div>
                 </div>
@@ -554,10 +593,10 @@
             missionPhases: [],
             success: false,
             techData: {
-                kinetic: { name: 'Kinetic Impactor', cost: 1.2, success: 75, duration: 14, icon: '🚀' },
-                gravity: { name: 'Gravity Tractor', cost: 2.8, success: 90, duration: 20, icon: '🛸' },
-                nuclear: { name: 'Nuclear Deflection', cost: 2.0, success: 85, duration: 16, icon: '☢️' },
-                laser: { name: 'Laser Ablation', cost: 3.5, success: 65, duration: 18, icon: '🔬' }
+                kinetic: { name: 'Kinetic Impactor', cost: 1.2, success: 10, duration: 14, icon: '🚀' },
+                gravity: { name: 'Gravity Tractor', cost: 2.8, success: 5, duration: 20, icon: '🛸' },
+                nuclear: { name: 'Nuclear Deflection', cost: 2.0, success: 95, duration: 16, icon: '☢️' },
+                laser: { name: 'Laser Ablation', cost: 3.5, success: 5, duration: 18, icon: '🔬' }
             }
         };
 
@@ -581,6 +620,7 @@
             
             updateBudget();
             document.getElementById('confirm-tech').disabled = false;
+            document.getElementById('success-prob').textContent = missionData.techData[tech].success + '%';
         }
 
         function updateBudget() {
@@ -665,8 +705,8 @@
                 
                 setTimeout(function() {
                     var roll = Math.random();
-                    if (roll > 0.8) {
-                        logMessage('  ⚠ Minor complication detected - adjusting parameters', '#f59e0b');
+                    if (roll > 0.8 && missionData.selectedTech !== 'nuclear') {
+                        logMessage('  ⚠ Critical complication detected - insufficient energy transfer', '#f59e0b');
                     } else {
                         logMessage('  ✓ Phase completed successfully', '#22c55e');
                     }
@@ -695,7 +735,7 @@
             var resultMessage = document.getElementById('result-message');
             var resultDetails = document.getElementById('result-details');
             
-            if (missionData.success) {
+            if (missionData.success && missionData.selectedTech === 'nuclear') {
                 resultIcon.textContent = '🎉';
                 resultTitle.textContent = 'MISSION SUCCESS!';
                 resultTitle.style.color = '#22c55e';
@@ -706,7 +746,7 @@
                 
                 resultDetails.innerHTML = '<div class="success-alert">' +
                     '<strong>✓ DEFLECTION CONFIRMED</strong><br>' +
-                    'The asteroid trajectory has been altered by ' + deflection + ' kilometers. ' +
+                    'The nuclear deflection successfully altered the asteroid trajectory by ' + deflection + ' kilometers. ' +
                     'Impact probability reduced to 0.00%. All tracking stations confirm Earth is no longer in danger. ' +
                     'Mission completed ' + (missionData.timeToImpact - missionData.daysElapsed) + ' days ahead of impact deadline.' +
                     '</div>';
@@ -721,9 +761,11 @@
                 
                 resultDetails.innerHTML = '<div class="alert">' +
                     '<strong>⚠ DEFLECTION INCOMPLETE</strong><br>' +
-                    'The mission encountered critical issues during execution. While some trajectory change was achieved, ' +
-                    'it was not sufficient to prevent impact. Global emergency response teams have been activated. ' +
-                    'Evacuation procedures are now in effect for predicted impact zones.' +
+                    (missionData.selectedTech === 'nuclear' ? 
+                        'Despite using nuclear deflection, unexpected technical issues prevented sufficient trajectory change. ' :
+                        'The selected technology (' + tech.name + ') lacked the necessary energy to deflect the asteroid effectively. ') +
+                    'Some trajectory change was achieved, but it was not sufficient to prevent impact. ' +
+                    'Global emergency response teams have been activated. Evacuation procedures are now in effect for predicted impact zones.' +
                     '</div>';
                 
                 document.getElementById('deflection-distance').textContent = Math.round(Math.random() * 5000) + ' km';
