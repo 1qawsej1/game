@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Asteroid Impact Simulator — Single File</title>
+
+  <!-- Roboto font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#7c3aed; --muted:#94a3b8; --glass:rgba(255,255,255,0.03);
+      font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    html,body,#map{height:100%;}
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      background:linear-gradient(180deg,#071026 0%, #081426 60%);
+      color:#e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
+    }
+
+    /* Layout */
+    .app{
+      display:flex; gap:18px; width:100%; padding:18px; box-sizing:border-box;
+    }
+    .left{flex:1; min-width:320px; max-width:860px; height:calc(100vh - 36px); border-radius:14px; overflow:hidden; box-shadow:0 8px 30px rgba(2,6,23,0.6); position:relative;}
+    #map{width:100%; height:100%;}
+
+    .right{
+      width:420px; max-width:40%; min-width:280px; display:flex; flex-direction:column; gap:14px;
+    }
+
+    .card{background:var(--card); border-radius:12px; padding:12px; box-shadow:0 6px 20px rgba(2,6,23,0.6);}    
+    .controls{display:flex;flex-direction:column;gap:10px;}
+
+    .row{display:flex;gap:10px;align-items:center;}
+    .label{min-width:88px;font-size:13px;color:var(--muted);}    
+    .value{font-weight:600;min-width:90px;text-align:right}
+    input[type=range]{width:100%;}
+
+    .outputs{display:flex;flex-direction:column;gap:8px}
+    .output{background:var(--glass); padding:10px;border-radius:10px; font-size:13px;}
+
+    .buttons{display:flex;gap:8px}
+    button{background:linear-gradient(180deg,var(--accent),#5b21b6);border:none;color:white;padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(92,33,182,0.18)}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);box-shadow:none;color:var(--muted)}
+
+    .legend{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .legend .sw{width:18px;height:10px;border-radius:4px}
+    .sw.red{background:linear-gradient(90deg, rgba(255,69,58,0.95), rgba(255,86,86,0.6))}
+    .sw.orange{background:linear-gradient(90deg,#ff8a00,#ffb86b)}
+    .sw.yellow{background:linear-gradient(90deg,#ffd54a,#fff59d)}
+    .sw.mild{background:linear-gradient(90deg,#c8f7a6,#e6ffcf)}
+
+    /* mobile responsiveness */
+    @media (max-width:920px){
+      .app{flex-direction:column;padding:10px}
+      .left{max-width:none;height:60vh}
+      .right{width:100%;max-width:none;}
+    }
+
+    /* simple tooltip for map zones */
+    .tooltip-content{font-size:13px}
+
+    /* Falling animation overlay */
+    .fall-wrap{position:absolute;left:0;top:0;pointer-events:none;width:100%;height:100%;overflow:visible;z-index:600}
+    .fall{position:absolute;font-size:36px;transform:translate(-50%,-50%);opacity:0}
+
+    .muted-small{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="left card">
+      <div id="map"></div>
+      <div class="fall-wrap" id="fallWrap" aria-hidden="true"></div>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <h3 style="margin:6px 0 10px 0">Asteroid Impact Simulator</h3>
+        <div class="controls" id="controls">
+
+          <div class="row">
+            <div class="label">Mass (kg)</div>
+            <div style="flex:1">
+              <input id="massRange" type="range" min="1e6" max="1e13" step="1" value="1e9">
+            </div>
+            <div class="value" id="massVal">1,000,000,000</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Speed (m/s)</div>
+            <div style="flex:1"><input id="speedRange" type="range" min="5000" max="50000" step="100" value="20000"></div>
+            <div class="value" id="speedVal">20,000</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Latitude</div>
+            <div style="flex:1"><input id="latRange" type="range" min="-90" max="90" step="0.0001" value="0"></div>
+            <div class="value" id="latVal">0.0000°</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Longitude</div>
+            <div style="flex:1"><input id="lngRange" type="range" min="-180" max="180" step="0.0001" value="0"></div>
+            <div class="value" id="lngVal">0.0000°</div>
+          </div>
+
+          <!-- Optional upgrades -->
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:6px 0">
+          <div class="row">
+            <div class="label">Deflect (%)</div>
+            <div style="flex:1"><input id="deflectRange" type="range" min="0" max="90" step="1" value="0"></div>
+            <div class="value" id="deflectVal">0%</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Fragment (%)</div>
+            <div style="flex:1"><input id="fragRange" type="range" min="0" max="90" step="1" value="0"></div>
+            <div class="value" id="fragVal">0%</div>
+          </div>
+
+          <div class="buttons" style="margin-top:6px">
+            <button id="simulateBtn">Simulate Impact</button>
+            <button id="resetBtn" class="secondary">Reset</button>
+            <button id="animateBtn" class="secondary">Animate Fall</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:6px 0 10px 0">NASA NEO Integration</h3>
+        <button id="fetchNeoBtn">Fetch Upcoming NEOs</button>
+        <select id="neoSelect" style="width:100%; margin-top:10px; padding:6px; border-radius:6px; background:var(--glass); color:inherit; border:1px solid rgba(255,255,255,0.06);">
+          <option value="">Select NEO</option>
+        </select>
+        <div class="muted-small" style="margin-top:8px">Fetches near-Earth objects from NASA's API. Select one to auto-set mass and speed based on real data (hypothetical impact).</div>
+      </div>
+
+      <div class="card outputs">
+        <div class="output"><strong>Asteroid diameter:</strong> <span id="astDia">—</span> m</div>
+        <div class="output"><strong>Kinetic energy (J):</strong> <span id="keVal">—</span> (<span id="keSci">—</span>)</div>
+        <div class="output"><strong>Estimated crater diameter:</strong> <span id="craterVal">—</span> km</div>
+        <div class="output"><strong>Blast radii (km):</strong> <span id="radiiVal">—</span></div>
+        <div class="output"><strong>Estimated affected population:</strong> <span id="popAffected">—</span></div>
+        <div class="output"><strong>Estimated fatalities:</strong> <span id="fatalitiesVal">—</span></div>
+        <div class="output" id="warningBox" style="display:none;background:linear-gradient(90deg,#3b0832, #6b1b43);color:#fff">⚠️ <span id="warningText"></span></div>
+        <div class="muted-small" id="popNote">Population estimated using country-average density. Click the map to simulate and fetch local country data.</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="legend">
+            <div class="sw red"></div><div style="font-size:13px;color:var(--muted);">Severe</div>
+            <div class="sw orange" style="margin-left:8px"></div><div style="font-size:13px;color:var(--muted);">Heavy</div>
+            <div class="sw yellow" style="margin-left:8px"></div><div style="font-size:13px;color:var(--muted);">Moderate</div>
+            <div class="sw mild" style="margin-left:8px"></div><div style="font-size:13px;color:var(--muted);">Mild</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">Density assumed: <strong>3000 kg/m³</strong></div>
+        </div>
+      </div>
+
+      <div class="card" style="text-align:center;font-size:13px;color:var(--muted)">
+        Tip: drag sliders — simulation updates instantly. Want deeper physics? I can add it.
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <script>
+  // --- Utilities ---
+  const $ = id => document.getElementById(id);
+  const fmt = (v) => (Number(v).toLocaleString());
+  const fmtFixed = (v, n=2) => Number(v).toLocaleString(undefined,{maximumFractionDigits:n});
+  const fmtSci = (v) => {
+    if (!isFinite(v)) return '—';
+    const abs = Math.abs(v);
+    if (abs===0) return '0';
+    if (abs < 1e3 || abs>1e8) return v.toExponential(3);
+    return v.toLocaleString();
+  }
+
+  // simple debounce helper to avoid rapid redraws
+  function debounce(fn, wait=120){
+    let t; return function(...args){ clearTimeout(t); t = setTimeout(()=> fn.apply(this,args), wait); } }
+
+  // --- Map setup ---
+  const map = L.map('map',{
+    worldCopyJump: false,
+    inertia: true,
+    inertiaDeceleration: 3000,
+    minZoom: 1,
+    maxZoom: 8,
+    zoomSnap: 0.1
+  });
+
+  // Carto Voyager tiles — realistic, with subtle elevation shading
+  const tile = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    attribution: '&copy; <a href="https://carto.com/">Carto</a> contributors, &copy; OpenStreetMap',
+    maxZoom: 20,
+    noWrap: true // prevent horizontal repeating
+  }).addTo(map);
+
+  // Prevent panning past the north/south bounds and avoid horizontal tiling illusion
+  const southWest = L.latLng(-90, -180), northEast = L.latLng(90, 180);
+  const bounds = L.latLngBounds(southWest, northEast);
+  map.setMaxBounds(bounds);
+  map.on('drag', function() { map.panInsideBounds(bounds, { animate:false }); });
+
+  // initial view
+  map.setView([10,0], 2);
+  L.control.scale({position:'bottomleft',imperial:false,metric:true,maxWidth:160}).addTo(map);
+
+  // layers for impact visualization
+  const impactLayer = L.layerGroup().addTo(map);
+  let impactMarker = null;
+  let circles = [];
+
+  // --- DOM elements ---
+  const massR = $('massRange'), massV = $('massVal');
+  const speedR = $('speedRange'), speedV = $('speedVal');
+  const latR = $('latRange'), latV = $('latVal');
+  const lngR = $('lngRange'), lngV = $('lngVal');
+  const defR = $('deflectRange'), defV = $('deflectVal');
+  const fragR = $('fragRange'), fragV = $('fragVal');
+
+  const astDiaEl = $('astDia'), keValEl = $('keVal'), keSciEl = $('keSci');
+  const craterEl = $('craterVal'), radiiEl = $('radiiVal');
+  const popAffectedEl = $('popAffected'), fatalitiesEl = $('fatalitiesVal');
+  const warnBox = $('warningBox'), warnText = $('warningText');
+  const popNote = $('popNote');
+
+  // sync displays
+  function updateDisplays(){
+    massV.textContent = fmt(massR.value);
+    speedV.textContent = fmt(speedR.value);
+    latV.textContent = Number(latR.value).toFixed(4) + '°';
+    lngV.textContent = Number(lngR.value).toFixed(4) + '°';
+    defV.textContent = defR.value + '%';
+    fragV.textContent = fragR.value + '%';
+  }
+  [massR, speedR, latR, lngR, defR, fragR].forEach(el=>el.addEventListener('input', ()=> {
+    updateDisplays();
+  }));
+  updateDisplays();
+
+  // --- Physics ---
+  const DENSITY = 3000; // kg/m3 — typical rock
+
+  function computeAsteroidDiameter(massKg){
+    // mass = density * volume => volume = mass/density
+    const vol = massKg / DENSITY;
+    const radius = Math.cbrt((3*vol)/(4*Math.PI));
+    return 2*radius; // meters
+  }
+
+  function computeKE(massKg, speedMs){
+    return 0.5 * massKg * speedMs * speedMs; // joules
+  }
+
+  function estimateCraterDiameterKm(keJ){
+    // Very simplified empirical scaling: D ~ C * KE^(1/4)
+    // We choose C so results are reasonable for educational/demo purposes.
+    const C = 0.2; // tuned constant (m / J^(1/4))
+    const D_m = C * Math.pow(keJ, 0.25);
+    return D_m/1000; // kilometers
+  }
+
+  function computeImpact(massKg, speedMs, deflectPct, fragPct){
+    // Apply mitigation: deflect reduces effective speed; fragment reduces effective mass
+    const effectiveSpeed = speedMs * (1 - deflectPct/100);
+    const effectiveMass = massKg * (1 - fragPct/100);
+
+    const diameter_m = computeAsteroidDiameter(effectiveMass);
+    const ke = computeKE(effectiveMass, effectiveSpeed);
+    const crater_km = estimateCraterDiameterKm(ke);
+
+    // blast radii (simple scaling multipliers) — tunable
+    const severe_km = Math.max(0.5, crater_km * 0.6); // inside the crater
+    const heavy_km = Math.max(severe_km*1.8, crater_km * 2.0);
+    const moderate_km = Math.max(heavy_km*1.9, crater_km * 5.0);
+    const mild_km = Math.max(moderate_km*2.2, crater_km * 12.0);
+
+    return {
+      diameter_m, ke, crater_km, severe_km, heavy_km, moderate_km, mild_km
+    };
+  }
+
+  // --- Population estimation ---
+  // approach: reverse-geocode to country (Nominatim), fetch country population & area (REST Countries),
+  // compute country-average density = population / area_km2,
+  // then approximate affected population per concentric ring by density * ring_area.
+  // fatality rates by zone are an approximation for demo purposes.
+
+  async function reverseGeocodeCountry(lat, lng){
+    try{
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=3&addressdetails=1`;
+      const res = await fetch(url, {headers: {'Accept': 'application/json'}});
+      if (!res.ok) throw new Error('reverse geocode failed');
+      const data = await res.json();
+      const countryCode = data && data.address && data.address.country_code ? data.address.country_code.toUpperCase() : null;
+      return countryCode;
+    }catch(e){
+      console.warn('reverse geocode error', e);
+      return null;
+    }
+  }
+
+  async function fetchCountryDensity(alpha2){
+    try{
+      // REST Countries returns population and area (area in km^2)
+      const url = `https://restcountries.com/v3.1/alpha/${alpha2}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('country fetch failed');
+      const data = await res.json();
+      const info = Array.isArray(data) ? data[0] : data;
+      if (!info || !info.population || !info.area) return null;
+      const density = info.population / info.area; // people per km^2
+      return { density, population: info.population, area: info.area, name: info.name && info.name.common };
+    }catch(e){
+      console.warn('country fetch error', e);
+      return null;
+    }
+  }
+
+  function ringAreas(severe_km, heavy_km, moderate_km, mild_km){
+    // areas in km^2 for rings (non-overlapping)
+    const area = (r) => Math.PI * r * r;
+    const A_severe = area(severe_km);
+    const A_heavy = Math.max(0, area(heavy_km) - A_severe);
+    const A_moderate = Math.max(0, area(moderate_km) - area(heavy_km));
+    const A_mild = Math.max(0, area(mild_km) - area(moderate_km));
+    return {A_severe, A_heavy, A_moderate, A_mild};
+  }
+
+  async function estimatePopulationImpact(lat, lng, result){
+    // default fallback density (global average ~ 60 people/km^2) — conservative placeholder
+    const fallbackDensity = 60;
+
+    // attempt to get country code then density
+    const countryCode = await reverseGeocodeCountry(lat, lng);
+    let densityData = null;
+    if (countryCode){
+      densityData = await fetchCountryDensity(countryCode).catch(()=>null);
+    }
+
+    const density = densityData && densityData.density ? densityData.density : fallbackDensity;
+
+    // compute ring areas and populations
+    const areas = ringAreas(result.severe_km, result.heavy_km, result.moderate_km, result.mild_km);
+    const pop_severe = areas.A_severe * density;
+    const pop_heavy = areas.A_heavy * density;
+    const pop_moderate = areas.A_moderate * density;
+    const pop_mild = areas.A_mild * density;
+    const totalAffected = pop_severe + pop_heavy + pop_moderate + pop_mild;
+
+    // approximate fatality rates per zone (demo): severe 90%, heavy 50%, moderate 15%, mild 2%
+    const fatal_severe = pop_severe * 0.9;
+    const fatal_heavy = pop_heavy * 0.5;
+    const fatal_moderate = pop_moderate * 0.15;
+    const fatal_mild = pop_mild * 0.02;
+    const totalFatal = fatal_severe + fatal_heavy + fatal_moderate + fatal_mild;
+
+    return {
+      densityData,
+      density,
+      perZone: {
+        severe: {area_km2: areas.A_severe, pop: pop_severe, fatal: fatal_severe},
+        heavy: {area_km2: areas.A_heavy, pop: pop_heavy, fatal: fatal_heavy},
+        moderate: {area_km2: areas.A_moderate, pop: pop_moderate, fatal: fatal_moderate},
+        mild: {area_km2: areas.A_mild, pop: pop_mild, fatal: fatal_mild}
+      },
+      totalAffected, totalFatal
+    };
+  }
+
+  // --- Interaction: draw on map ---
+  function clearImpact(){
+    impactLayer.clearLayers();
+    impactMarker = null; circles = [];
+    warnBox.style.display='none';
+    popAffectedEl.textContent = '—'; fatalitiesEl.textContent = '—';
+    popNote.textContent = 'Population estimated using country-average density. Click the map to simulate and fetch local country data.';
+  }
+
+  async function drawImpact(lat, lng, result){
+    clearImpact();
+    const latlng = [lat, lng];
+
+    // emoji marker using DivIcon
+    const icon = L.divIcon({className:'asteroid-marker', html:'<div style="font-size:28px">☄️</div>', iconSize:[32,32], iconAnchor:[16,16]});
+    impactMarker = L.marker(latlng, {icon}).addTo(impactLayer);
+
+    // Draw outer -> inner so small (severe) sits on top and is visible
+    const mild = L.circle(latlng, {radius: result.mild_km*1000, stroke:true, color:'#316f1c', weight:1, opacity:0.06, fillColor:'#c8f7a6', fillOpacity:0.12}).addTo(impactLayer);
+    const moderate = L.circle(latlng, {radius: result.moderate_km*1000, stroke:true, color:'#7a5b00', weight:1, opacity:0.07, fillColor:'#ffd54a', fillOpacity:0.18}).addTo(impactLayer);
+    const heavy = L.circle(latlng, {radius: result.heavy_km*1000, stroke:true, color:'#b44a10', weight:1, opacity:0.08, fillColor:'#ff8a1f', fillOpacity:0.25}).addTo(impactLayer);
+    const severe = L.circle(latlng, {radius: result.severe_km*1000, stroke:true, color:'#7a0a0a', weight:1, opacity:0.1, fillColor:'#ff4444', fillOpacity:0.35}).addTo(impactLayer);
+    circles = [mild, moderate, heavy, severe];
+
+    // attach tooltips
+    mild.bindTooltip(`<div class="tooltip-content"><strong>Mild:</strong> ${fmtFixed(result.mild_km,2)} km</div>`,{permanent:false});
+    moderate.bindTooltip(`<div class="tooltip-content"><strong>Moderate:</strong> ${fmtFixed(result.moderate_km,2)} km</div>`,{permanent:false});
+    heavy.bindTooltip(`<div class="tooltip-content"><strong>Heavy:</strong> ${fmtFixed(result.heavy_km,2)} km</div>`,{permanent:false});
+    severe.bindTooltip(`<div class="tooltip-content"><strong>Severe:</strong> ${fmtFixed(result.severe_km,2)} km</div>`,{permanent:false}).openTooltip();
+
+    // zoom map so full blast radius is visible using a featureGroup (stable bounds)
+    try{
+      const group = L.featureGroup(circles);
+      map.fitBounds(group.getBounds(), {padding:[80,80], maxZoom:5});
+    }catch(e){
+      map.setView(latlng,2);
+    }
+
+    // population + fatalities estimate (asynchronous)
+    try{
+      popNote.textContent = 'Estimating population — fetching country data...';
+      const popEst = await estimatePopulationImpact(lat, lng, result);
+
+      const totalAff = Math.round(popEst.totalAffected);
+      const totalFatal = Math.round(popEst.totalFatal);
+      popAffectedEl.textContent = totalAff.toLocaleString();
+      fatalitiesEl.textContent = totalFatal.toLocaleString();
+
+      // update popNote with data source
+      if (popEst.densityData && popEst.densityData.name){
+        popNote.textContent = `Using country-average density for ${popEst.densityData.name} (${Math.round(popEst.densityData.density)} ppl/km²). This is a coarse estimate.`;
+      } else {
+        popNote.textContent = `Using fallback global-average density (${Math.round(popEst.density)} ppl/km²). For more accuracy, connect a gridded population dataset.`;
+      }
+
+      // if tiny numbers, be explicit
+      if (totalAff < 1) popAffectedEl.textContent = '<1';
+      if (totalFatal < 1) fatalitiesEl.textContent = '<1';
+
+    }catch(e){
+      popNote.textContent = 'Population estimation failed — showing no estimate.';
+      console.warn(e);
+    }
+  }
+
+  // debounced simulate so rapid slider changes don't cause jitter
+  const debouncedSimulate = debounce((animate=false) => simulate(animate), 80);
+
+  // --- UI: simulate action ---
+  function simulate(animate=false){
+    const mass = Number(massR.value);
+    const speed = Number(speedR.value);
+    const lat = Number(latR.value);
+    const lng = Number(lngR.value);
+    const def = Number(defR.value);
+    const frag = Number(fragR.value);
+
+    // get effective values & results
+    const res = computeImpact(mass, speed, def, frag);
+
+    // update output box
+    astDiaEl.textContent = fmtFixed(res.diameter_m,1);
+    keValEl.textContent = fmt(parseFloat(res.ke.toFixed(0)));
+    keSciEl.textContent = fmtSci(res.ke);
+    craterEl.textContent = fmtFixed(res.crater_km,2);
+    radiiEl.textContent = `${fmtFixed(res.severe_km,2)} / ${fmtFixed(res.heavy_km,2)} / ${fmtFixed(res.moderate_km,2)} / ${fmtFixed(res.mild_km,2)} km`;
+
+    // warning system
+    const megatons = res.ke / 4.184e15;
+    if (megatons > 1000){
+      warnText.textContent = `Extreme energy: ~${Math.round(megatons).toLocaleString()} megatons — global catastrophic potential.`;
+      warnBox.style.display = 'block';
+    } else if (megatons > 10){
+      warnText.textContent = `Large impact: ~${Math.round(megatons).toLocaleString()} megatons — regional devastation.`;
+      warnBox.style.display = 'block';
+    } else {
+      warnBox.style.display = 'none';
+    }
+
+    if (animate){
+      animateFallTo(lat,lng, ()=> drawImpact(lat,lng,res));
+    } else {
+      // draw + async population estimate
+      drawImpact(lat,lng,res);
+    }
+  }
+
+  // --- Animation: falling emoji to impact ---
+  const fallWrap = $('fallWrap');
+  function animateFallTo(lat, lng, done){
+    // compute target relative to map container
+    const targetPoint = map.latLngToContainerPoint([lat,lng]);
+
+    // create element and position above the visible map area (using fallWrap coordinates)
+    const el = document.createElement('div'); el.className='fall'; el.innerHTML='☄️';
+    // start X at target x, start Y above the top
+    el.style.left = (Math.round(targetPoint.x)) + 'px';
+    el.style.top = '-120px';
+    el.style.opacity = '1';
+    el.style.transition = 'top 900ms cubic-bezier(.2,.9,.2,1), opacity 200ms linear';
+    fallWrap.appendChild(el);
+
+    // Force a reflow so the transition runs reliably
+    void el.offsetWidth;
+
+    // compute final Y (clamp inside fallWrap)
+    const clampY = Math.min(Math.max(Math.round(targetPoint.y), 20), fallWrap.clientHeight - 20);
+    el.style.top = clampY + 'px';
+
+    // wait for transitionend to fade out and cleanup
+    const onEnd = (ev) => {
+      if (ev.propertyName === 'top'){
+        el.removeEventListener('transitionend', onEnd);
+        el.style.transition = 'opacity 300ms linear';
+        el.style.opacity = '0';
+        setTimeout(()=>{ el.remove(); done && done(); }, 320);
+      }
+    };
+    el.addEventListener('transitionend', onEnd);
+
+    // Safety fallback: if transitionend not fired, cleanup after 1.6s
+    setTimeout(()=>{
+      if (document.body.contains(el)){
+        el.remove(); done && done();
+      }
+    }, 1600);
+  }
+
+  // --- NASA NEO API Integration ---
+  const apiKey = '4gkxMlrvfAdWiMnr4vCVL7zwizhtX77QCPALiQrd';
+
+  async function fetchNEOs() {
+    const today = new Date().toISOString().split('T')[0];
+    const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${today}&api_key=${apiKey}`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('NEO API fetch failed');
+      const data = await res.json();
+      const neos = [];
+      for (let date in data.near_earth_objects) {
+        data.near_earth_objects[date].forEach(neo => {
+          if (neo.estimated_diameter && neo.close_approach_data && neo.close_approach_data[0]) {
+            neos.push(neo);
+          }
+        });
+      }
+      const sel = $('neoSelect');
+      sel.innerHTML = '<option value="">Select NEO</option>';
+      neos.forEach(neo => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify({
+          name: neo.name,
+          dia_min: neo.estimated_diameter.meters.estimated_diameter_min,
+          dia_max: neo.estimated_diameter.meters.estimated_diameter_max,
+          vel: neo.close_approach_data[0].relative_velocity.kilometers_per_second
+        });
+        opt.textContent = `${neo.name} (Close Approach: ${neo.close_approach_data[0].close_approach_date})`;
+        sel.appendChild(opt);
+      });
+      if (neos.length === 0) {
+        sel.innerHTML += '<option value="">No NEOs found in the next week</option>';
+      }
+    } catch (e) {
+      console.error('NEO fetch error', e);
+      $('neoSelect').innerHTML = '<option value="">Error fetching NEOs</option>';
+    }
+  }
+
+  // --- events ---
+  $('simulateBtn').addEventListener('click', ()=> simulate(false));
+  $('resetBtn').addEventListener('click', ()=> clearImpact());
+  $('animateBtn').addEventListener('click', ()=> simulate(true));
+
+  // live-update when sliders change (instant feedback) but don't animate
+  [massR, speedR, latR, lngR, defR, fragR].forEach(el=> el.addEventListener('input', ()=> debouncedSimulate(false)));
+
+  // initial simulate with defaults
+  simulate(false);
+
+  // clicking on map moves impact lat/lng sliders
+  map.on('click', function(e){
+    const p = e.latlng;
+    latR.value = p.lat; lngR.value = p.lng;
+    updateDisplays();
+    simulate(true);
+  });
+
+  // make sure UI updates when values programmatically change
+  function setRangeValue(range, v){ range.value = v; updateDisplays(); debouncedSimulate(false); }
+
+  // For accessibility: keyboard control for simulation
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter') simulate(false);
+    if (e.key === 'r') clearImpact();
+  });
+
+  // NEO events
+  $('fetchNeoBtn').addEventListener('click', fetchNEOs);
+  $('neoSelect').addEventListener('change', (e) => {
+    if (!e.target.value) return;
+    const d = JSON.parse(e.target.value);
+    const avg_dia = (d.dia_min + d.dia_max) / 2;
+    const radius = avg_dia / 2;
+    const volume = (4 / 3) * Math.PI * Math.pow(radius, 3);
+    const mass = DENSITY * volume;
+    const clamped_mass = Math.min(Math.max(mass, 1e6), 1e13);
+    setRangeValue(massR, clamped_mass);
+    const speed = d.vel * 1000;
+    const clamped_speed = Math.min(Math.max(speed, 5000), 50000);
+    setRangeValue(speedR, clamped_speed);
+    setRangeValue(defR, 0);
+    setRangeValue(fragR, 0);
+    simulate(false);
+  });
+
+  // end script
+  </script>
+</body>
+</html>
