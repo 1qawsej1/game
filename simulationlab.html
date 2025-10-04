@@ -1,204 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Simulation Lab</title>
-<style>
-body {
-  margin: 0;
-  height: 100vh;
-  background: url('Simulationlab.png') no-repeat center center/cover;
-  position: relative;
-  overflow: hidden;
-  font-family: 'Segoe UI', sans-serif;
-}
+  <meta charset="UTF-8">
+  <title>Simulation Lab</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: url('Simulationlab.png') no-repeat center center/cover;
+      position: relative;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-.door {
-  position: absolute;
-  top: 195px;
-  width: 400px;
-  height: 345px;
-  background: rgba(255,255,255,0);
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-}
+    .door {
+      position: absolute;
+      top: 195px;
+      width: 400px;
+      height: 345px;
+      background: rgba(255,255,255,0);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
 
-.room-bar {
-  width: max-content;
-  min-width: 100px;
-  padding: 5px 14px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  text-align: center;
-  font-size: 14px;
-  border-radius: 0 0 5px 5px;
-  opacity: 0;
-  transform: translateY(100%);
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
+    .room-bar {
+      width: max-content;
+      min-width: 100px;
+      padding: 5px 14px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      border-radius: 0 0 5px 5px;
+      opacity: 0;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
 
-.door.active .room-bar {
-  opacity: 1;
-  transform: translateY(0);
-}
+    .door.active .room-bar {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-#character {
-  position: absolute;
-  width: 15vw;
-  aspect-ratio: 2/3;
-  background: url('1234.png') no-repeat center/contain;
-  z-index: 5;
-  transition: transform 0.3s ease-in-out;
-  visibility: hidden;
-}
+    #character {
+      position: absolute;
+      width: 15vw;
+      aspect-ratio: 2/3;
+      background: url('1234.png') no-repeat center/contain;
+      z-index: 5;
+      transition: transform 0.3s ease-in-out;
+      visibility: hidden;
+    }
 
-#simulator-panel {
-  position: fixed;
-  top: -100%;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.95);
-  transition: top 0.5s ease;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
+    #simulator-panel {
+      position: fixed;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      transition: top 0.5s ease;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-#simulator-panel.active {
-  top: 0;
-}
+    #simulator-panel.active {
+      top: 0;
+    }
 
-#simulator-panel iframe {
-  width: 90%;
-  height: 90%;
-  border: none;
-  border-radius: 10px;
-}
+    #simulator-panel iframe {
+      width: 90%;
+      height: 90%;
+      border: none;
+      border-radius: 10px;
+    }
 
-#close-simulator {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 28px;
-  cursor: pointer;
-  color: #fff;
-}
-#close-simulator:hover { color: #0ff; }
+    #close-simulator {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #fff;
+    }
 
-</style>
+    #close-simulator:hover {
+      color: #0ff;
+    }
+  </style>
 </head>
 <body>
+  <div id="character"></div>
 
-<div id="character"></div>
+  <div class="door" style="left:30px;" data-type="simulator">
+    <div class="room-bar">Meteor Impact Simulator</div>
+  </div>
 
-<!-- 模拟器门 -->
-<div class="door" style="left:30px;" data-type="simulator">
-  <div class="room-bar">Meteor Impact Simulator</div>
-</div>
+  <div class="door" style="left:1195px;" data-target="index.html">
+    <div class="room-bar">Main Lab</div>
+  </div>
 
-<!-- 主实验室门 -->
-<div class="door" style="left:1195px;" data-target="index.html">
-  <div class="room-bar">Main Lab</div>
-</div>
+  <div id="simulator-panel">
+    <span id="close-simulator">✖</span>
+    <iframe src="nasa.html"></iframe>
+  </div>
 
-<!-- 滑出 Google Slides 面板 -->
-<div id="simulator-panel">
-  <span id="close-simulator">✖</span>
-  <div style="color:white; font-size:18px; margin-bottom:10px; text-align:center;">Meteor Impact Slides</div>
-  <iframe 
-    src="https://docs.google.com/presentation/d/e/2PACX-1vTXXXXXXX/embed?start=false&loop=false&delayms=3000" 
-    allowfullscreen
-  ></iframe>
-</div>
+  <script>
+    const character = document.getElementById("character");
+    const doors = document.querySelectorAll(".door");
+    const simulatorPanel = document.getElementById("simulator-panel");
+    const closeSimulator = document.getElementById("close-simulator");
 
-<script>
-const character = document.getElementById("character");
-const doors = document.querySelectorAll(".door");
-const simulatorPanel = document.getElementById("simulator-panel");
-const closeSimulator = document.getElementById("close-simulator");
+    let x, y;
+    const speed = 10;
+    let facingRight = true;
+    let sway = 0, swayDir = 1;
+    const groundOffset = window.innerHeight * 0.05;
 
-let x, y;
-const speed = 10;
-let facingRight = true;
-let sway = 0, swayDir = 1;
-const groundOffset = window.innerHeight * 0.05;
-
-// 初始化角色位置
-function initPosition() {
-  x = (window.innerWidth - character.offsetWidth)/2;
-  y = window.innerHeight - character.offsetHeight - groundOffset;
-  character.style.left = x + "px";
-  character.style.top = y + "px";
-  character.style.visibility = "visible";
-}
-
-// 更新角色位置和摇摆
-function updateCharacter() {
-  sway += swayDir * 0.2;
-  if(sway > 4 || sway < -4) swayDir *= -1;
-
-  character.style.left = `${x}px`;
-  character.style.top = `${y + sway}px`;
-  character.style.transform = `scaleX(${facingRight?1:-1})`;
-}
-
-// 检测碰撞门
-function checkCollision() {
-  const charBox = { left:x, right:x+character.offsetWidth, top:y, bottom:y+character.offsetHeight };
-  let collidedDoor = null;
-  doors.forEach(door=>{
-    const r = { left:door.offsetLeft, right:door.offsetLeft+door.offsetWidth, top:door.offsetTop, bottom:door.offsetTop+door.offsetHeight };
-    const overlap = charBox.right>r.left && charBox.left<r.right && charBox.bottom>r.top && charBox.top<r.bottom;
-    if(overlap){
-      door.classList.add("active"); // 碰撞时显示提示框
-      collidedDoor = door;
-    } else door.classList.remove("active");
-  });
-  return collidedDoor;
-}
-
-// 循环更新
-function loop() {
-  updateCharacter();
-  checkCollision(); // 每帧检测门碰撞
-  requestAnimationFrame(loop);
-}
-loop();
-
-window.addEventListener('load', initPosition);
-window.addEventListener('resize', initPosition);
-
-// 键盘控制
-document.addEventListener('keydown', (e)=>{
-  if(e.key==='ArrowLeft'){ x-=speed; facingRight=false; e.preventDefault();}
-  if(e.key==='ArrowRight'){ x+=speed; facingRight=true; e.preventDefault();}
-  if(e.key==='ArrowUp'){ y-=speed; e.preventDefault();}
-  if(e.key==='ArrowDown'){ y+=speed; e.preventDefault();}
-
-  const maxX = window.innerWidth - character.offsetWidth;
-  const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
-  x = Math.max(0, Math.min(maxX, x));
-  y = Math.max(0, Math.min(maxY, y));
-
-  if(e.key==='Enter'||e.key===' '){
-    const collided = checkCollision();
-    if(collided){
-      if(collided.dataset.type==='simulator'){
-        simulatorPanel.classList.add('active');
-      } else if(collided.dataset.target){
-        window.location.href = collided.dataset.target;
-      }
+    // 初始化角色位置
+    function initPosition() {
+      x = (window.innerWidth - character.offsetWidth) / 2;
+      y = window.innerHeight - character.offsetHeight - groundOffset;
+      character.style.left = x + "px";
+      character.style.top = y + "px";
+      character.style.visibility = "visible";
     }
-  }
-});
 
-closeSimulator.onclick = ()=>simulatorPanel.classList.remove('active');
-</script>
+    // 更新角色位置和摇摆
+    function updateCharacter() {
+      sway += swayDir * 0.2;
+      if(sway > 4 || sway < -4) swayDir *= -1;
+      character.style.left = `${x}px`;
+      character.style.top = `${y + sway}px`;
+      character.style.transform = `scaleX(${facingRight ? 1 : -1})`;
+    }
 
+    // 检测碰撞门
+    function checkCollision() {
+      const charBox = {
+        left: x,
+        right: x + character.offsetWidth,
+        top: y,
+        bottom: y + character.offsetHeight
+      };
+
+      let collidedDoor = null;
+
+      doors.forEach(door => {
+        const r = {
+          left: door.offsetLeft,
+          right: door.offsetLeft + door.offsetWidth,
+          top: door.offsetTop,
+          bottom: door.offsetTop + door.offsetHeight
+        };
+
+        const overlap = charBox.right > r.left && charBox.left < r.right &&
+                        charBox.bottom > r.top && charBox.top < r.bottom;
+
+        if(overlap) {
+          door.classList.add("active"); // 碰撞时显示黑色提示框
+          collidedDoor = door;
+        } else {
+          door.classList.remove("active");
+        }
+      });
+
+      return collidedDoor;
+    }
+
+    // 循环更新
+    function loop() {
+      updateCharacter();
+      checkCollision();
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    window.addEventListener('load', initPosition);
+    window.addEventListener('resize', initPosition);
+
+    // 键盘控制
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowLeft') { x -= speed; facingRight = false; e.preventDefault(); }
+      if(e.key === 'ArrowRight') { x += speed; facingRight = true; e.preventDefault(); }
+      if(e.key === 'ArrowUp') { y -= speed; e.preventDefault(); }
+      if(e.key === 'ArrowDown') { y += speed; e.preventDefault(); }
+
+      const maxX = window.innerWidth - character.offsetWidth;
+      const maxY = window.innerHeight - character.offsetHeight - groundOffset/2;
+      x = Math.max(0, Math.min(maxX, x));
+      y = Math.max(0, Math.min(maxY, y));
+
+      if(e.key === 'Enter' || e.key === ' ') {
+        const collided = checkCollision();
+        if(collided) {
+          if(collided.dataset.type === 'simulator') {
+            simulatorPanel.classList.add('active');
+          } else if(collided.dataset.target) {
+            window.location.href = collided.dataset.target;
+          }
+        }
+      }
+    });
+
+    closeSimulator.onclick = () => simulatorPanel.classList.remove('active');
+  </script>
 </body>
 </html>
