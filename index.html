@@ -19,7 +19,7 @@
       transform: translateY(-50%);
       width: 70px;
       height: 300px;
-      background: rgba(255, 255, 255, 0); /* 永远透明 */
+      background: rgba(255, 255, 255, 0);
       display: flex;
       justify-content: center;
       align-items: flex-end;
@@ -52,6 +52,7 @@
       height: 300px;
       background: url('1234.png') no-repeat center center / contain;
       image-rendering: crisp-edges;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -83,16 +84,36 @@
     const character = document.getElementById("character");
     const doors = document.querySelectorAll(".door");
 
-    // ===== 初始位置（屏幕中央偏下） =====
-    let x = window.innerWidth / 2 - 35; // 角色宽 70 -> 居中
-    let y = window.innerHeight * 0.7;   // 屏幕高度 70%
+    // 角色放到“地面”时与窗口底部的距离，调这个数直到脚位合适
+    let groundOffset = 40; // 可以改成 20 / 30 / 60 试试
+
+    let x = 0, y = 0;
     const speed = 8;
 
-    // 设定初始位置
-    character.style.left = x + "px";
-    character.style.top = y + "px";
+    function initPosition() {
+      // 确保样式已经应用，获取真实大小
+      const charW = character.offsetWidth;
+      const charH = character.offsetHeight;
 
-    // ===== 检测角色与门的碰撞 =====
+      // 水平居中（减去半个角色宽度）
+      x = Math.round(window.innerWidth / 2 - charW / 2);
+
+      // 垂直放到“地面”：窗口高度 - 角色高度 - groundOffset
+      y = Math.round(window.innerHeight - charH - groundOffset);
+
+      // 防止超出边界
+      x = Math.max(0, Math.min(window.innerWidth - charW, x));
+      y = Math.max(0, Math.min(window.innerHeight - charH, y));
+
+      character.style.left = x + "px";
+      character.style.top = y + "px";
+    }
+
+    // 重新定位：页面加载完成 / 窗口大小改变
+    window.addEventListener('load', initPosition);
+    window.addEventListener('resize', initPosition);
+
+    // 碰撞检测
     function checkCollision() {
       const charBox = character.getBoundingClientRect();
       let collidedDoor = null;
@@ -112,16 +133,15 @@
           door.classList.remove("active");
         }
       });
-
       return collidedDoor;
     }
 
-    // ===== 键盘控制角色移动 =====
+    // 键盘控制角色移动
     document.addEventListener("keydown", (e) => {
       let moved = false;
 
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        e.preventDefault(); // 防止页面滚动
+        e.preventDefault();
         moved = true;
       }
 
@@ -130,23 +150,22 @@
       if (e.key === "ArrowLeft") x -= speed;
       if (e.key === "ArrowRight") x += speed;
 
-      // 边界检测
+      // 边界
       const maxX = window.innerWidth - character.offsetWidth;
       const maxY = window.innerHeight - character.offsetHeight;
       x = Math.max(0, Math.min(maxX, x));
       y = Math.max(0, Math.min(maxY, y));
 
-      // 更新角色位置
       if (moved) {
         character.style.left = x + "px";
         character.style.top = y + "px";
         checkCollision();
       }
 
-      // ===== 按 Enter 或 空格 进入门 =====
+      // Enter/Space 触发门
       if (e.key === "Enter" || e.key === " ") {
         const collided = checkCollision();
-        if (collided) {
+        if (collided && collided.dataset.target) {
           window.location.href = collided.dataset.target;
         }
       }
