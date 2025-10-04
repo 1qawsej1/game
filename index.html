@@ -18,7 +18,7 @@
       top: 50%;
       transform: translateY(-50%);
       width: 70px;
-      height: 30vh; /* 相对视口高度，响应式 */
+      height: 30vh;
       background: rgba(255, 255, 255, 0);
       display: flex;
       justify-content: center;
@@ -48,13 +48,14 @@
     /* ===== 角色样式 ===== */
     #character {
       position: absolute;
-      width: 20vw; /* 根据视口宽度缩放 */
-      max-width: 200px;
-      min-width: 120px;
-      aspect-ratio: 2/3; /* 固定比例 */
+      width: 40vw; /* ✅ 放大一倍 */
+      max-width: 400px;
+      min-width: 240px;
+      aspect-ratio: 2/3;
       background: url('1234.png') no-repeat center center / contain;
       image-rendering: crisp-edges;
       pointer-events: none;
+      transition: transform 0.1s linear;
     }
   </style>
 </head>
@@ -87,10 +88,11 @@
     const doors = document.querySelectorAll(".door");
 
     // 角色脚与地面距离
-    let groundOffset = window.innerHeight * 0.05; // 视口高度的5%
+    let groundOffset = window.innerHeight * 0.05;
 
     let x = 0, y = 0;
-    const speed = 10; // 每次移动的像素
+    const speed = 10;
+    let facingRight = true; // ✅ 新增方向状态
 
     function initPosition() {
       const charW = character.offsetWidth;
@@ -98,7 +100,6 @@
 
       // 水平居中
       x = (window.innerWidth - charW) / 2;
-
       // 底部对齐
       y = window.innerHeight - charH - groundOffset;
 
@@ -108,6 +109,8 @@
     function updateCharacter() {
       character.style.left = `${x}px`;
       character.style.top = `${y}px`;
+      // ✅ 镜像翻转
+      character.style.transform = `scaleX(${facingRight ? 1 : -1})`;
     }
 
     // 初始化 + 监听窗口变化
@@ -148,8 +151,14 @@
 
       if (e.key === "ArrowUp") y -= speed;
       if (e.key === "ArrowDown") y += speed;
-      if (e.key === "ArrowLeft") x -= speed;
-      if (e.key === "ArrowRight") x += speed;
+      if (e.key === "ArrowLeft") {
+        x -= speed;
+        facingRight = false; // ✅ 向左镜像
+      }
+      if (e.key === "ArrowRight") {
+        x += speed;
+        facingRight = true; // ✅ 向右恢复
+      }
 
       // 边界限制
       const maxX = window.innerWidth - character.offsetWidth;
@@ -173,3 +182,4 @@
   </script>
 </body>
 </html>
+
