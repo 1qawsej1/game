@@ -24,25 +24,26 @@
       align-items: flex-end;
     }
 
-    .room-bar {
-      width: max-content;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      text-align: center;
-      font-size: 14px;
-      padding: 5px 16;
-      border-radius: 0 0 5px 5px;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s ease;
-      pointer-events: none;
-    }
+.room-bar {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  padding: 6px 20px;  /* ✅ 字条稍微宽一点，比较美观 */
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  min-width: 120px; /* ✅ 保证不会太短 */
+  width: fit-content; /* 根据文字自动调宽 */
+}
 
-    /* 当角色靠近时显示 */
-    .door.active .room-bar {
-      opacity: 1;
-      transform: translateY(0);
-    }
+/* 当角色靠近时显示 */
+.door.active .room-bar {
+  opacity: 1;
+  transform: translateY(0);
+}
 
     #character {
       position: absolute;
