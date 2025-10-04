@@ -53,28 +53,7 @@
       background: red; /* 临时小人 */
     }
 
-    /* ====== PPT 按钮 ====== */
-    #ppt-button {
-      position: absolute;
-      right: 40px;
-      top: 50%;
-      transform: translateY(-50%);
-      padding: 20px 40px;
-      font-size: 18px;
-      background: rgba(0, 150, 255, 0.8);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(5px);
-    }
-    #ppt-button:hover {
-      background: rgba(0, 200, 255, 1);
-      transform: translateY(-50%) scale(1.05);
-    }
-
-    /* ====== 右侧弹出面板 ====== */
+    /* ====== 右侧弹出 Canva 面板 ====== */
     #ppt-panel {
       position: fixed;
       top: 0;
@@ -109,6 +88,7 @@
       color: white;
       cursor: pointer;
     }
+
     #close-panel:hover {
       color: #0ff;
     }
@@ -121,11 +101,13 @@
     <div class="room-bar">Main Lab</div>
   </div>
 
+  <!-- 右边的“PPT门” -->
+  <div class="door" style="left: 1150px;" data-type="ppt">
+    <div class="room-bar">Archive Files</div>
+  </div>
+
   <!-- 角色 -->
   <div id="character"></div>
-
-  <!-- 打开 PPT 的按钮 -->
-  <button id="ppt-button">📊 Open Archive File</button>
 
   <!-- 右侧滑出的 Canva 面板 -->
   <div id="ppt-panel">
@@ -137,7 +119,6 @@
     const character = document.getElementById("character");
     const doors = document.querySelectorAll(".door");
     const pptPanel = document.getElementById("ppt-panel");
-    const pptButton = document.getElementById("ppt-button");
     const closePanel = document.getElementById("close-panel");
 
     let x = 600, y = 400;
@@ -179,6 +160,7 @@
       return collidedDoor;
     }
 
+    // 键盘控制移动与交互
     document.addEventListener("keydown", (e) => {
       let newX = x, newY = y;
 
@@ -204,13 +186,15 @@
       if (e.key === "Enter" || e.key === " ") {
         const collided = checkCollision();
         if (collided) {
-          window.location.href = collided.dataset.target;
+          if (collided.dataset.type === "ppt") {
+            pptPanel.classList.add("active");
+          } else if (collided.dataset.target) {
+            window.location.href = collided.dataset.target;
+          }
         }
       }
     });
 
-    // 打开和关闭 Canva 面板
-    pptButton.onclick = () => pptPanel.classList.add("active");
     closePanel.onclick = () => pptPanel.classList.remove("active");
   </script>
 </body>
