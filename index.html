@@ -52,7 +52,8 @@ body {
   background: url('1234.png') no-repeat center/contain;
   pointer-events:none;
   z-index:5;
-  /* 删除 animation，改用 JS 控制摇摆 + 镜像 */
+  /* 镜像翻转 + 动画 */
+  transition: transform 0.3s ease-in-out; /* 平滑转向 */
 }
 </style>
 </head>
