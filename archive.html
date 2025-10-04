@@ -37,7 +37,8 @@
       pointer-events: none;
     }
 
-    .door:hover .room-bar {
+    /* 当角色靠近时显示 */
+    .door.active .room-bar {
       opacity: 1;
       transform: translateY(0);
     }
@@ -56,11 +57,6 @@
   <!-- 左边门 -->
   <div class="door" style="left: 25px;" data-target="index.html">
     <div class="room-bar">Main Lab</div>
-  </div>
-
-  <!-- 右边门 -->
-  <div class="door" style="left: 1195px;" data-target="archive.html">
-    <div class="room-bar">Archive</div>
   </div>
 
   <!-- 角色 -->
@@ -99,13 +95,18 @@
           charBox.bottom > doorRect.top &&
           charBox.top < doorRect.bottom;
 
+        // 自动显示门名
         if (overlap) {
+          door.classList.add("active");
           collidedDoor = door;
+        } else {
+          door.classList.remove("active");
         }
       });
       return collidedDoor;
     }
 
+    // 键盘控制角色移动
     document.addEventListener("keydown", (e) => {
       let newX = x, newY = y;
 
@@ -121,11 +122,14 @@
         if (newX + character.offsetWidth > roomWidth) newX = roomWidth - character.offsetWidth;
         if (newY + character.offsetHeight > roomHeight) newY = roomHeight - character.offsetHeight;
 
-        // 更新位置
+        // 更新角色位置
         x = newX;
         y = newY;
         character.style.left = x + "px";
         character.style.top = y + "px";
+
+        // 检查是否靠近门
+        checkCollision();
       }
 
       if (e.key === "Enter" || e.key === " ") {
